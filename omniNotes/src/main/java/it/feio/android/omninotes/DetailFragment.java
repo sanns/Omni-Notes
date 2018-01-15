@@ -177,8 +177,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	private Note noteTmp;
 	private Note noteOriginal;
 	// Audio recording
-	private String recordName;
-	private MediaRecorder mRecorder = null;
+	protected AudioRecordHelper mRecordHelper;
 	private MediaPlayer mPlayer = null;
 	private boolean isRecording = false;
 	private View isPlayingView = null;
@@ -324,10 +323,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			saveNote(this);
 		}
 
-		if (mRecorder != null) {
-			mRecorder.release();
-			mRecorder = null;
-		}
+		if (mRecordHelper != null) mRecordHelper.destroyRecorder();
 
 		// Unregistering layout observer
 		if (root != null) {
@@ -559,6 +555,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		reminder_layout.setOnClickListener(v -> {
 			int pickerType = prefs.getBoolean("settings_simple_calendar", false) ? ReminderPickers.TYPE_AOSP :
 					ReminderPickers.TYPE_GOOGLE;
+
 			ReminderPickers reminderPicker = new ReminderPickers(mainActivity, mFragment, pickerType);
 			reminderPicker.pick(DateUtils.getPresetReminder(noteTmp.getAlarm()), noteTmp
 					.getRecurrenceRule());
@@ -1346,6 +1343,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		// Location
 		android.widget.TextView locationSelection = (android.widget.TextView) layout.findViewById(R.id.location);
 		locationSelection.setOnClickListener(new AttachmentOnClickListener());
+
 		// Desktop note with PushBullet
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			android.widget.TextView pushbulletSelection = (android.widget.TextView) layout.findViewById(R.id
@@ -1664,6 +1662,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	@Override
 	public void onNoteSaved(Note noteSaved) {
 		MainActivity.notifyAppWidgets(OmniNotes.getAppContext());
+
 		if (!activityPausing) {
 			EventBus.getDefault().post(new NotesUpdatedEvent());
 			deleteMergedNotes(mergedNotesIds);
@@ -1728,6 +1727,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		Note sharedNote = new Note(noteTmp);
 		sharedNote.setTitle(getNoteTitle());
 		sharedNote.setContent(getNoteContent());
+
 		mainActivity.shareNote(sharedNote);
 	}
 
@@ -1874,41 +1874,33 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 					mTextView.setText(getString(R.string.stop));
 					mTextView.setTextColor(Color.parseColor("#ff0000"));
 
-					File f = StorageHelper.createNewAttachmentFile(mainActivity, Constants.MIME_TYPE_AUDIO_EXT);
-					if (f == null) {
-						mainActivity.showMessage(R.string.error, ONStyle.ALERT);
-						return;
-					}
-					if (mRecorder == null) {
-						mRecorder = new MediaRecorder();
-						mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-						mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-						mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-						mRecorder.setAudioEncodingBitRate(96000);
-						mRecorder.setAudioSamplingRate(44100);
-					}
-					recordName = f.getAbsolutePath();
-					mRecorder.setOutputFile(recordName);
+					if (mRecordHelper == null) mRecordHelper = new AudioRecordHelper(mainActivity);
 
 					try {
-						audioRecordingTimeStart = Calendar.getInstance().getTimeInMillis();
-						mRecorder.prepare();
-						mRecorder.start();
+						mRecordHelper.startRecording();
 					} catch (IOException | IllegalStateException e) {
-						Log.e(Constants.TAG, "prepare() failed", e);
-						mainActivity.showMessage(R.string.error, ONStyle.ALERT);
+						if (
+							e instanceof IOException && ((IOException) e).getMessage() != "File did not make it."
+							|| e instanceof IllegalStateException
+						) mainActivity.showMessage(R.string.error, ONStyle.ALERT);
 					}
 				});
 	}
 
-
+	/**
+	 * Doesn't clear the created file.
+	 * */
 	private void stopRecording() {
-		if (mRecorder != null) {
-			mRecorder.stop();
-			audioRecordingTime = Calendar.getInstance().getTimeInMillis() - audioRecordingTimeStart;
-			mRecorder.release();
-			mRecorder = null;
-		}
+		mRecordHelper.stopRecording();
+	}
+
+	private void addRecordToAttachments() {
+		Attachment attachment = new Attachment(Uri.fromFile(new File(mRecordHelper.getRecordPath())), Constants.MIME_TYPE_AUDIO);
+		attachment.setLength(mRecordHelper.getRecordingTime());
+
+		addAttachment(attachment);
+		mAttachmentAdapter.notifyDataSetChanged();
+		mGridView.autoresize();
 	}
 
 
@@ -2352,11 +2344,8 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 					} else {
 						isRecording = false;
 						stopRecording();
-						Attachment attachment = new Attachment(Uri.fromFile(new File(recordName)), Constants.MIME_TYPE_AUDIO);
-						attachment.setLength(audioRecordingTime);
-						addAttachment(attachment);
-						mAttachmentAdapter.notifyDataSetChanged();
-						mGridView.autoresize();
+						addRecordToAttachments();
+
 						attachmentDialog.dismiss();
 					}
 					break;
