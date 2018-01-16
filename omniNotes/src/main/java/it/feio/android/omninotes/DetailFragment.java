@@ -397,6 +397,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
+	// todo how does action from widget request captureing photo?
 	private void handleIntents() {
 		Intent i = mainActivity.getIntent();
 
@@ -599,6 +600,24 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
+
+
+	/**
+	 * Used to set actual reminder state when initializing a note to be edited
+	 */
+	private String initReminder(Note note) {
+		if (noteTmp.getAlarm() == null) {
+			return "";
+		}
+		long reminder = parseLong(note.getAlarm());
+		String rrule = note.getRecurrenceRule();
+		if (!TextUtils.isEmpty(rrule)) {
+			return DateHelper.getNoteRecurrentReminderText(reminder, rrule);
+		} else {
+			return DateHelper.getNoteReminderText(reminder);
+		}
+	}
+
 	private void initViewLocation() {
 
 		DetailFragment detailFragment = this;
@@ -649,11 +668,6 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
-	private void getLocation(OnGeoUtilResultListener onGeoUtilResultListener) {
-		PermissionsHelper.requestPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION, R.string
-				.permission_coarse_location, snackBarPlaceholder, () -> GeocodeHelper.getLocation(onGeoUtilResultListener));
-	}
-
 
 	private void initViewAttachments() {
 
@@ -665,7 +679,8 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		}
 		mGridView = (ExpandableHeightGridView) root.findViewById(R.id.gridview);
 
-		// Some fields can be filled by third party application and are always shown
+		// Some fields can be filled by third party application and are always shown.
+		// why pass same mGridView which we'll set this adapter for?
 		mAttachmentAdapter = new AttachmentAdapter(mainActivity, noteTmp.getAttachmentsList(), mGridView);
 
 		// Initialzation of gridview for images
@@ -674,9 +689,10 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 
 		// Click events for images in gridview (zooms image)
 		mGridView.setOnItemClickListener((parent, v, position, id) -> {
+			Intent attachmentIntent;
+
 			Attachment attachment = (Attachment) parent.getAdapter().getItem(position);
 			Uri uri = attachment.getUri();
-			Intent attachmentIntent;
 			if (Constants.MIME_TYPE_FILES.equals(attachment.getMime_type())) {
 
 				attachmentIntent = new Intent(Intent.ACTION_VIEW);
@@ -690,7 +706,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 					mainActivity.showMessage(R.string.feature_not_available_on_this_device, ONStyle.WARN);
 				}
 
-				// Media files will be opened in internal gallery
+				// Media files will be opened in internal gallery activity
 			} else if (Constants.MIME_TYPE_IMAGE.equals(attachment.getMime_type())
 					|| Constants.MIME_TYPE_SKETCH.equals(attachment.getMime_type())
 					|| Constants.MIME_TYPE_VIDEO.equals(attachment.getMime_type())) {
@@ -867,9 +883,34 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
-	private void displayLocationDialog() {
-		getLocation(new OnGeoUtilResultListenerImpl(mainActivity, mFragment, noteTmp));
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	private static class OnGeoUtilResultListenerImpl implements OnGeoUtilResultListener {
 
@@ -1045,12 +1086,12 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			MenuItemCompat.collapseActionView(searchMenuItem);
 		}
 
-		boolean newNote = noteTmp.get_id() == null;
 
 		menu.findItem(R.id.menu_checklist_on).setVisible(!noteTmp.isChecklist());
 		menu.findItem(R.id.menu_checklist_off).setVisible(noteTmp.isChecklist());
 		menu.findItem(R.id.menu_lock).setVisible(!noteTmp.isLocked());
 		menu.findItem(R.id.menu_unlock).setVisible(noteTmp.isLocked());
+		boolean newNote = noteTmp.get_id() == null;
 		// If note is trashed only this options will be available from menu
 		if (noteTmp.isTrashed()) {
 			menu.findItem(R.id.menu_untrash).setVisible(true);
@@ -1062,41 +1103,6 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			menu.findItem(R.id.menu_unarchive).setVisible(!newNote && noteTmp.isArchived());
 			menu.findItem(R.id.menu_trash).setVisible(!newNote);
 		}
-	}
-
-
-	@SuppressLint("NewApi")
-	public boolean goHome() {
-		stopPlaying();
-
-		// The activity has managed a shared intent from third party app and
-		// performs a normal onBackPressed instead of returning back to ListActivity
-		if (!afterSavedReturnsToList) {
-			if (!TextUtils.isEmpty(exitMessage)) {
-				mainActivity.showToast(exitMessage, Toast.LENGTH_SHORT);
-			}
-			mainActivity.finish();
-
-		} else {
-
-			if (!TextUtils.isEmpty(exitMessage) && exitCroutonStyle != null) {
-				mainActivity.showMessage(exitMessage, exitCroutonStyle);
-			}
-
-			// Otherwise the result is passed to ListActivity
-			if (mainActivity != null && mainActivity.getSupportFragmentManager() != null) {
-				mainActivity.getSupportFragmentManager().popBackStack();
-				if (mainActivity.getSupportFragmentManager().getBackStackEntryCount() == 1) {
-					mainActivity.getSupportActionBar().setDisplayShowTitleEnabled(true);
-					if (mainActivity.getDrawerToggle() != null) {
-						mainActivity.getDrawerToggle().setDrawerIndicatorEnabled(true);
-					}
-					EventBus.getDefault().post(new SwitchFragmentEvent(SwitchFragmentEvent.Direction.PARENT));
-				}
-			}
-		}
-
-		return true;
 	}
 
 
@@ -1157,10 +1163,8 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
-	private void navigateUp() {
-		afterSavedReturnsToList = true;
-		saveAndExit(this);
-	}
+
+
 
 
 	/**
@@ -1361,50 +1365,125 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
+	/**
+	 * Manages clicks on attachment dialog
+	 */
+	@SuppressLint("InlinedApi")
+	private class AttachmentOnClickListener implements OnClickListener {
+
+		@Override
+		public void onClick(View v) {
+			boolean dismiss = true;
+
+			switch (v.getId()) {
+				// Photo from camera
+				case R.id.camera:
+					takePhoto();
+					break;
+				case R.id.recording:
+					if (!isRecording) {
+						startRecording(v);
+						dismiss = false;
+					} else {
+						isRecording = false;
+						stopRecording();
+						addRecordToAttachments();
+					}
+					break;
+				case R.id.video:
+					takeVideo();
+					break;
+				case R.id.files:
+					Intent filesIntent;
+					filesIntent = new Intent(Intent.ACTION_GET_CONTENT);
+					filesIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+					filesIntent.addCategory(Intent.CATEGORY_OPENABLE);
+					filesIntent.setType("*/*");
+
+					startActivityForResult(filesIntent, FILES);
+					break;
+				case R.id.sketch:
+					takeSketch(null);
+					break;
+				case R.id.location:
+					displayLocationDialog();
+					break;
+				case R.id.pushbullet:
+					MessagingExtension.mirrorMessage(mainActivity, getString(R.string.app_name),
+						getString(R.string.pushbullet),
+						getNoteContent(), BitmapFactory.decodeResource(getResources(),
+							R.drawable.ic_stat_literal_icon),
+						null, 0);
+					break;
+				default:
+					Log.e(Constants.TAG, "Wrong element choosen: " + v.getId());
+					dismiss = false;
+			}
+
+			if (dismiss) attachmentDialog.dismiss();
+		}
+	}
+
+
 	private void takePhoto() {
 		// Checks for camera app available
 		Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		if (!IntentChecker.isAvailable(mainActivity, intent, new String[]{PackageManager.FEATURE_CAMERA})) {
-			mainActivity.showMessage(R.string.feature_not_available_on_this_device, ONStyle.ALERT);
 
+		if (!IntentChecker.isAvailable(
+			mainActivity,
+			intent,
+			new String[]{PackageManager.FEATURE_CAMERA}
+		)) {
+			mainActivity.showMessage(R.string.feature_not_available_on_this_device, ONStyle.ALERT);
 			return;
 		}
+
 		// Checks for created file validity
 		File f = StorageHelper.createNewAttachmentFile(mainActivity, Constants.MIME_TYPE_IMAGE_EXT);
 		if (f == null) {
 			mainActivity.showMessage(R.string.error, ONStyle.ALERT);
 			return;
 		}
+
 		// Launches intent
 		attachmentUri = Uri.fromFile(f);
 		intent.putExtra(MediaStore.EXTRA_OUTPUT, attachmentUri);
+
 		startActivityForResult(intent, TAKE_PHOTO);
 	}
 
 
 	private void takeVideo() {
-		Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-		if (!IntentChecker.isAvailable(mainActivity, takeVideoIntent, new String[]{PackageManager.FEATURE_CAMERA})) {
+		Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+		if (!IntentChecker.isAvailable(
+			mainActivity,
+			intent,
+			new String[]{PackageManager.FEATURE_CAMERA}
+		)) {
 			mainActivity.showMessage(R.string.feature_not_available_on_this_device, ONStyle.ALERT);
-
 			return;
 		}
+
 		// File is stored in custom ON folder to speedup the attachment
 		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.GINGERBREAD_MR1) {
 			File f = StorageHelper.createNewAttachmentFile(mainActivity, Constants.MIME_TYPE_VIDEO_EXT);
 			if (f == null) {
 				mainActivity.showMessage(R.string.error, ONStyle.ALERT);
-
 				return;
 			}
+
 			attachmentUri = Uri.fromFile(f);
-			takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT, attachmentUri);
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, attachmentUri);
 		}
-		String maxVideoSizeStr = "".equals(prefs.getString("settings_max_video_size",
-				"")) ? "0" : prefs.getString("settings_max_video_size", "");
+
+		String maxVideoSizeStr = "".equals(prefs.getString(
+			"settings_max_video_size",
+			""
+		)) ? "0" : prefs.getString("settings_max_video_size", "");
 		long maxVideoSize = parseLong(maxVideoSizeStr) * 1024L * 1024L;
-		takeVideoIntent.putExtra(MediaStore.EXTRA_SIZE_LIMIT, maxVideoSize);
-		startActivityForResult(takeVideoIntent, TAKE_VIDEO);
+		intent.putExtra(MediaStore.EXTRA_SIZE_LIMIT, maxVideoSize); //openCamera не юзает, и снимает бесконечно.
+
+		startActivityForResult(intent, TAKE_VIDEO);
 	}
 
 
@@ -1423,15 +1502,195 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		// Fragments replacing
 		FragmentTransaction transaction = mainActivity.getSupportFragmentManager().beginTransaction();
 		mainActivity.animateTransition(transaction, mainActivity.TRANSITION_HORIZONTAL);
-		SketchFragment mSketchFragment = new SketchFragment();
+
 		Bundle b = new Bundle();
 		b.putParcelable(MediaStore.EXTRA_OUTPUT, attachmentUri);
 		if (attachment != null) {
 			b.putParcelable("base", attachment.getUri());
 		}
+
+		SketchFragment mSketchFragment = new SketchFragment();
 		mSketchFragment.setArguments(b);
 		transaction.replace(R.id.fragment_container, mSketchFragment, mainActivity.FRAGMENT_SKETCH_TAG)
 				.addToBackStack(mainActivity.FRAGMENT_DETAIL_TAG).commit();
+	}
+
+
+
+	/**
+	 * Creates a file and starts inflating it with audio.
+	 * */
+	private void startRecording(View v) {
+		PermissionsHelper.requestPermission(getActivity(), Manifest.permission.RECORD_AUDIO,
+			R.string.permission_audio_recording, snackBarPlaceholder, () -> {
+
+				isRecording = true;
+				android.widget.TextView mTextView = (android.widget.TextView) v;
+				mTextView.setText(getString(R.string.stop));
+				mTextView.setTextColor(Color.parseColor("#ff0000"));
+
+				if (mRecordHelper == null) mRecordHelper = new AudioRecordHelper(mainActivity);
+
+				try {
+					mRecordHelper.startRecording();
+				} catch (IOException | IllegalStateException e) {
+					if (
+						e instanceof IOException && ((IOException) e).getMessage() != "File did not make it."
+							|| e instanceof IllegalStateException
+						) mainActivity.showMessage(R.string.error, ONStyle.ALERT);
+				}
+			});
+	}
+
+	/**
+	 * Doesn't clear the created file.
+	 * */
+	private void stopRecording() {
+		mRecordHelper.stopRecording();
+	}
+
+	private void addRecordToAttachments() {
+		Attachment attachment = new Attachment(Uri.fromFile(new File(mRecordHelper.getRecordPath())), Constants.MIME_TYPE_AUDIO);
+		attachment.setLength(mRecordHelper.getRecordingTime());
+
+		addAttachment(attachment);
+		mAttachmentAdapter.notifyDataSetChanged();
+		mGridView.autoresize();
+	}
+
+
+	/**
+	 * Add previously created tags to content
+	 */
+	private void addTags() {
+		contentCursorPosition = getCursorIndex();
+
+		// Retrieves all available categories
+		final List<Tag> tags = TagsHelper.getAllTags();
+
+		// If there is no tag a message will be shown
+		if (tags.size() == 0) {
+			mainActivity.showMessage(R.string.no_tags_created, ONStyle.WARN);
+			return;
+		}
+
+		final Note currentNote = new Note();
+		currentNote.setTitle(getNoteTitle());
+		currentNote.setContent(getNoteContent());
+		Integer[] preselectedTags = TagsHelper.getPreselectedTagsArray(currentNote, tags);
+
+		// Dialog and events creation
+		MaterialDialog dialog = new MaterialDialog.Builder(mainActivity)
+			.title(R.string.select_tags)
+			.positiveText(R.string.ok)
+			.items(TagsHelper.getTagsArray(tags))
+			.itemsCallbackMultiChoice(preselectedTags, (dialog1, which, text) -> {
+				dialog1.dismiss();
+				tagNote(tags, which, currentNote);
+				return false;
+			}).build();
+		dialog.show();
+	}
+
+
+	private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
+		Pair<String, List<Tag>> taggingResult = TagsHelper.addTagToNote(tags, selectedTags, note);
+
+		StringBuilder sb;
+		if (noteTmp.isChecklist()) {
+			CheckListViewItem mCheckListViewItem = mChecklistManager.getFocusedItemView();
+			if (mCheckListViewItem != null) {
+				sb = new StringBuilder(mCheckListViewItem.getText());
+				sb.insert(contentCursorPosition, " " + taggingResult.first + " ");
+				mCheckListViewItem.setText(sb.toString());
+				mCheckListViewItem.getEditText().setSelection(contentCursorPosition + taggingResult.first.length()
+					+ 1);
+			} else {
+				title.append(" " + taggingResult.first);
+			}
+		} else {
+			sb = new StringBuilder(getNoteContent());
+			if (content.hasFocus()) {
+				sb.insert(contentCursorPosition, " " + taggingResult.first + " ");
+				content.setText(sb.toString());
+				content.setSelection(contentCursorPosition + taggingResult.first.length() + 1);
+			} else {
+				if (getNoteContent().trim().length() > 0) {
+					sb.append(System.getProperty("line.separator"))
+						.append(System.getProperty("line.separator"));
+				}
+				sb.append(taggingResult.first);
+				content.setText(sb.toString());
+			}
+		}
+
+		// Removes unchecked tags
+		if (taggingResult.second.size() > 0) {
+			if (noteTmp.isChecklist()) {
+				toggleChecklist2(true, true);
+			}
+			Pair<String, String> titleAndContent = TagsHelper.removeTag(getNoteTitle(), getNoteContent(),
+				taggingResult.second);
+			title.setText(titleAndContent.first);
+			content.setText(titleAndContent.second);
+			if (noteTmp.isChecklist()) {
+				toggleChecklist2();
+			}
+		}
+	}
+
+
+
+	/**
+	 * Updates share intent
+	 */
+	private void shareNote() {
+		Note sharedNote = new Note(noteTmp);
+		sharedNote.setTitle(getNoteTitle());
+		sharedNote.setContent(getNoteContent());
+
+		mainActivity.shareNote(sharedNote);
+	}
+
+
+	/**
+	 * Notes locking with security password to avoid viewing, editing or deleting from unauthorized
+	 */
+	private void lockNote() {
+		Log.d(Constants.TAG, "Locking or unlocking note " + note.get_id());
+
+		// If security password is not set yes will be set right now
+		if (prefs.getString(Constants.PREF_PASSWORD, null) == null) {
+			Intent passwordIntent = new Intent(mainActivity, PasswordActivity.class);
+			startActivityForResult(passwordIntent, SET_PASSWORD);
+			return;
+		}
+
+		// If password has already been inserted will not be asked again
+		if (noteTmp.isPasswordChecked() || prefs.getBoolean("settings_password_access", false)) {
+			lockUnlock();
+			return;
+		}
+
+		// Password will be requested here
+		PasswordHelper.requestPassword(mainActivity, passwordConfirmed -> {
+			if (passwordConfirmed) {
+				lockUnlock();
+			}
+		});
+	}
+
+
+	private void lockUnlock() {
+		// Empty password has been set
+		if (prefs.getString(Constants.PREF_PASSWORD, null) == null) {
+			mainActivity.showMessage(R.string.password_not_set, ONStyle.WARN);
+			return;
+		}
+		mainActivity.showMessage(R.string.save_note_to_lock_it, ONStyle.INFO);
+		mainActivity.supportInvalidateOptionsMenu();
+		noteTmp.setLocked(!noteTmp.isLocked());
+		noteTmp.setPasswordChecked(true);
 	}
 
 
@@ -1456,6 +1715,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 						attachment = new Attachment(intent.getData(), Constants.MIME_TYPE_VIDEO);
 					}
 					addAttachment(attachment);
+
 					mAttachmentAdapter.notifyDataSetChanged();
 					mGridView.autoresize();
 					break;
@@ -1589,6 +1849,46 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
+	@SuppressLint("NewApi")
+	public boolean goHome() {
+		stopPlaying();
+
+		// The activity has managed a shared intent from third party app and
+		// performs a normal onBackPressed instead of returning back to ListActivity
+		if (!afterSavedReturnsToList) {
+			if (!TextUtils.isEmpty(exitMessage)) {
+				mainActivity.showToast(exitMessage, Toast.LENGTH_SHORT);
+			}
+			mainActivity.finish();
+
+		} else {
+
+			if (!TextUtils.isEmpty(exitMessage) && exitCroutonStyle != null) {
+				mainActivity.showMessage(exitMessage, exitCroutonStyle);
+			}
+
+			// Otherwise the result is passed to ListActivity
+			if (mainActivity != null && mainActivity.getSupportFragmentManager() != null) {
+				mainActivity.getSupportFragmentManager().popBackStack();
+				if (mainActivity.getSupportFragmentManager().getBackStackEntryCount() == 1) {
+					mainActivity.getSupportActionBar().setDisplayShowTitleEnabled(true);
+					if (mainActivity.getDrawerToggle() != null) {
+						mainActivity.getDrawerToggle().setDrawerIndicatorEnabled(true);
+					}
+					EventBus.getDefault().post(new SwitchFragmentEvent(SwitchFragmentEvent.Direction.PARENT));
+				}
+			}
+		}
+
+		return true;
+	}
+
+	private void navigateUp() {
+		afterSavedReturnsToList = true;
+		saveAndExit(this);
+	}
+
+
 	public void saveAndExit(OnNoteSaved mOnNoteSaved) {
 		if (isAdded()) {
 			exitMessage = getString(R.string.note_updated);
@@ -1611,8 +1911,10 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		// Check if some text or attachments of any type have been inserted or
 		// is an empty note
 		if (goBack && TextUtils.isEmpty(noteTmp.getTitle()) && TextUtils.isEmpty(noteTmp.getContent())
-				&& noteTmp.getAttachmentsList().size() == 0) {
+			&& noteTmp.getAttachmentsList().size() == 0) {
+
 			Log.d(Constants.TAG, "Empty note not saved");
+
 			exitMessage = getString(R.string.empty_note_not_saved);
 			exitCroutonStyle = ONStyle.INFO;
 			goHome();
@@ -1629,8 +1931,10 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 
 		noteTmp.setAttachmentsListOld(note.getAttachmentsList());
 
-		new SaveNoteTask(mOnNoteSaved, lastModificationUpdatedNeeded()).executeOnExecutor(AsyncTask
-				.THREAD_POOL_EXECUTOR, noteTmp);
+		new SaveNoteTask(
+			mOnNoteSaved,
+			lastModificationUpdatedNeeded()
+		).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteTmp);
 	}
 
 
@@ -1659,6 +1963,11 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
+
+	/*
+	* BaseNote overrides:
+	* */
+
 	@Override
 	public void onNoteSaved(Note noteSaved) {
 		MainActivity.notifyAppWidgets(OmniNotes.getAppContext());
@@ -1666,11 +1975,14 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		if (!activityPausing) {
 			EventBus.getDefault().post(new NotesUpdatedEvent());
 			deleteMergedNotes(mergedNotesIds);
+
 			if (noteTmp.getAlarm() != null && !noteTmp.getAlarm().equals(note.getAlarm())) {
 				ReminderHelper.showReminderMessage(noteTmp.getAlarm());
 			}
 		}
+
 		note = new Note(noteSaved);
+
 		if (goBack) {
 			goHome();
 		}
@@ -1690,6 +2002,10 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
+		/**
+	 * takes title from EditText in fragment or empty string.
+	 * @return
+   */
 	private String getNoteTitle() {
 		if (title != null && !TextUtils.isEmpty(title.getText())) {
 			return title.getText().toString();
@@ -1699,6 +2015,10 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
+	/**
+	 * get note content alrrady transformed from checklist.
+	 * @return
+   */
 	private String getNoteContent() {
 		String contentText = "";
 		if (!noteTmp.isChecklist()) {
@@ -1719,74 +2039,53 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		return contentText;
 	}
 
-
 	/**
-	 * Updates share intent
+	 * Adding shortcut on Home screen
 	 */
-	private void shareNote() {
-		Note sharedNote = new Note(noteTmp);
-		sharedNote.setTitle(getNoteTitle());
-		sharedNote.setContent(getNoteContent());
-
-		mainActivity.shareNote(sharedNote);
+	private void addShortcut() {
+		ShortcutHelper.addShortcut(OmniNotes.getAppContext(), noteTmp);
+		mainActivity.showMessage(R.string.shortcut_added, ONStyle.INFO);
 	}
 
 
 	/**
-	 * Notes locking with security password to avoid viewing, editing or deleting from unauthorized
-	 */
-	private void lockNote() {
-		Log.d(Constants.TAG, "Locking or unlocking note " + note.get_id());
-
-		// If security password is not set yes will be set right now
-		if (prefs.getString(Constants.PREF_PASSWORD, null) == null) {
-			Intent passwordIntent = new Intent(mainActivity, PasswordActivity.class);
-			startActivityForResult(passwordIntent, SET_PASSWORD);
-			return;
-		}
-
-		// If password has already been inserted will not be asked again
-		if (noteTmp.isPasswordChecked() || prefs.getBoolean("settings_password_access", false)) {
-			lockUnlock();
-			return;
-		}
-
-		// Password will be requested here
-		PasswordHelper.requestPassword(mainActivity, passwordConfirmed -> {
-			if (passwordConfirmed) {
-				lockUnlock();
+	 * SCroll to ...
+	 * */
+	private void scrollContent() {
+		if (noteTmp.isChecklist()) {
+			if (mChecklistManager.getCount() > contentLineCounter) {
+				scrollView.scrollBy(0, 60);
 			}
-		});
+			contentLineCounter = mChecklistManager.getCount();
+		} else {
+			if (content.getLineCount() > contentLineCounter) {
+				scrollView.scrollBy(0, 60);
+			}
+			contentLineCounter = content.getLineCount();
+		}
 	}
 
 
-	private void lockUnlock() {
-		// Empty password has been set
-		if (prefs.getString(Constants.PREF_PASSWORD, null) == null) {
-			mainActivity.showMessage(R.string.password_not_set, ONStyle.WARN);
-			return;
+
+	private int getCursorIndex() {
+		if (!noteTmp.isChecklist()) {
+			return content.getSelectionStart();
+		} else {
+			CheckListViewItem mCheckListViewItem = mChecklistManager.getFocusedItemView();
+			if (mCheckListViewItem != null) {
+				return mCheckListViewItem.getEditText().getSelectionStart();
+			} else {
+				return 0;
+			}
 		}
-		mainActivity.showMessage(R.string.save_note_to_lock_it, ONStyle.INFO);
-		mainActivity.supportInvalidateOptionsMenu();
-		noteTmp.setLocked(!noteTmp.isLocked());
-		noteTmp.setPasswordChecked(true);
 	}
 
 
 	/**
-	 * Used to set actual reminder state when initializing a note to be edited
+	 * Used to check currently opened note from activity to avoid openind multiple times the same one
 	 */
-	private String initReminder(Note note) {
-		if (noteTmp.getAlarm() == null) {
-			return "";
-		}
-		long reminder = parseLong(note.getAlarm());
-		String rrule = note.getRecurrenceRule();
-		if (!TextUtils.isEmpty(rrule)) {
-			return DateHelper.getNoteRecurrentReminderText(reminder, rrule);
-		} else {
-			return DateHelper.getNoteReminderText(reminder);
-		}
+	public Note getCurrentNote() {
+		return note;
 	}
 
 
@@ -1865,45 +2164,6 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
-	private void startRecording(View v) {
-		PermissionsHelper.requestPermission(getActivity(), Manifest.permission.RECORD_AUDIO,
-				R.string.permission_audio_recording, snackBarPlaceholder, () -> {
-
-					isRecording = true;
-					android.widget.TextView mTextView = (android.widget.TextView) v;
-					mTextView.setText(getString(R.string.stop));
-					mTextView.setTextColor(Color.parseColor("#ff0000"));
-
-					if (mRecordHelper == null) mRecordHelper = new AudioRecordHelper(mainActivity);
-
-					try {
-						mRecordHelper.startRecording();
-					} catch (IOException | IllegalStateException e) {
-						if (
-							e instanceof IOException && ((IOException) e).getMessage() != "File did not make it."
-							|| e instanceof IllegalStateException
-						) mainActivity.showMessage(R.string.error, ONStyle.ALERT);
-					}
-				});
-	}
-
-	/**
-	 * Doesn't clear the created file.
-	 * */
-	private void stopRecording() {
-		mRecordHelper.stopRecording();
-	}
-
-	private void addRecordToAttachments() {
-		Attachment attachment = new Attachment(Uri.fromFile(new File(mRecordHelper.getRecordPath())), Constants.MIME_TYPE_AUDIO);
-		attachment.setLength(mRecordHelper.getRecordingTime());
-
-		addAttachment(attachment);
-		mAttachmentAdapter.notifyDataSetChanged();
-		mGridView.autoresize();
-	}
-
-
 	private void fade(final View v, boolean fadeIn) {
 
 		int anim = R.animator.fade_out_support;
@@ -1940,15 +2200,6 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			});
 			v.startAnimation(mAnimation);
 		}
-	}
-
-
-	/**
-	 * Adding shortcut on Home screen
-	 */
-	private void addShortcut() {
-		ShortcutHelper.addShortcut(OmniNotes.getAppContext(), noteTmp);
-		mainActivity.showMessage(R.string.shortcut_added, ONStyle.INFO);
 	}
 
 
@@ -2048,11 +2299,11 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 						swiping = false;
 						FragmentTransaction transaction = mainActivity.getSupportFragmentManager().beginTransaction();
 						mainActivity.animateTransition(transaction, mainActivity.TRANSITION_VERTICAL);
-						DetailFragment mDetailFragment = new DetailFragment();
+						DetailFragment detailFragment = new DetailFragment();
 						Bundle b = new Bundle();
 						b.putParcelable(Constants.INTENT_NOTE, new Note());
-						mDetailFragment.setArguments(b);
-						transaction.replace(R.id.fragment_container, mDetailFragment,
+						detailFragment.setArguments(b);
+						transaction.replace(R.id.fragment_container, detailFragment,
 								mainActivity.FRAGMENT_DETAIL_TAG).addToBackStack(mainActivity
 								.FRAGMENT_DETAIL_TAG).commit();
 					}
@@ -2198,123 +2449,6 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
-	private void scrollContent() {
-		if (noteTmp.isChecklist()) {
-			if (mChecklistManager.getCount() > contentLineCounter) {
-				scrollView.scrollBy(0, 60);
-			}
-			contentLineCounter = mChecklistManager.getCount();
-		} else {
-			if (content.getLineCount() > contentLineCounter) {
-				scrollView.scrollBy(0, 60);
-			}
-			contentLineCounter = content.getLineCount();
-		}
-	}
-
-
-	/**
-	 * Add previously created tags to content
-	 */
-	private void addTags() {
-		contentCursorPosition = getCursorIndex();
-
-		// Retrieves all available categories
-		final List<Tag> tags = TagsHelper.getAllTags();
-
-		// If there is no tag a message will be shown
-		if (tags.size() == 0) {
-			mainActivity.showMessage(R.string.no_tags_created, ONStyle.WARN);
-			return;
-		}
-
-		final Note currentNote = new Note();
-		currentNote.setTitle(getNoteTitle());
-		currentNote.setContent(getNoteContent());
-		Integer[] preselectedTags = TagsHelper.getPreselectedTagsArray(currentNote, tags);
-
-		// Dialog and events creation
-		MaterialDialog dialog = new MaterialDialog.Builder(mainActivity)
-				.title(R.string.select_tags)
-				.positiveText(R.string.ok)
-				.items(TagsHelper.getTagsArray(tags))
-				.itemsCallbackMultiChoice(preselectedTags, (dialog1, which, text) -> {
-					dialog1.dismiss();
-					tagNote(tags, which, currentNote);
-					return false;
-				}).build();
-		dialog.show();
-	}
-
-
-	private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
-		Pair<String, List<Tag>> taggingResult = TagsHelper.addTagToNote(tags, selectedTags, note);
-
-		StringBuilder sb;
-		if (noteTmp.isChecklist()) {
-			CheckListViewItem mCheckListViewItem = mChecklistManager.getFocusedItemView();
-			if (mCheckListViewItem != null) {
-				sb = new StringBuilder(mCheckListViewItem.getText());
-				sb.insert(contentCursorPosition, " " + taggingResult.first + " ");
-				mCheckListViewItem.setText(sb.toString());
-				mCheckListViewItem.getEditText().setSelection(contentCursorPosition + taggingResult.first.length()
-						+ 1);
-			} else {
-				title.append(" " + taggingResult.first);
-			}
-		} else {
-			sb = new StringBuilder(getNoteContent());
-			if (content.hasFocus()) {
-				sb.insert(contentCursorPosition, " " + taggingResult.first + " ");
-				content.setText(sb.toString());
-				content.setSelection(contentCursorPosition + taggingResult.first.length() + 1);
-			} else {
-				if (getNoteContent().trim().length() > 0) {
-					sb.append(System.getProperty("line.separator"))
-							.append(System.getProperty("line.separator"));
-				}
-				sb.append(taggingResult.first);
-				content.setText(sb.toString());
-			}
-		}
-
-		// Removes unchecked tags
-		if (taggingResult.second.size() > 0) {
-			if (noteTmp.isChecklist()) {
-				toggleChecklist2(true, true);
-			}
-			Pair<String, String> titleAndContent = TagsHelper.removeTag(getNoteTitle(), getNoteContent(),
-					taggingResult.second);
-			title.setText(titleAndContent.first);
-			content.setText(titleAndContent.second);
-			if (noteTmp.isChecklist()) {
-				toggleChecklist2();
-			}
-		}
-	}
-
-
-	private int getCursorIndex() {
-		if (!noteTmp.isChecklist()) {
-			return content.getSelectionStart();
-		} else {
-			CheckListViewItem mCheckListViewItem = mChecklistManager.getFocusedItemView();
-			if (mCheckListViewItem != null) {
-				return mCheckListViewItem.getEditText().getSelectionStart();
-			} else {
-				return 0;
-			}
-		}
-	}
-
-
-	/**
-	 * Used to check currently opened note from activity to avoid openind multiple times the same one
-	 */
-	public Note getCurrentNote() {
-		return note;
-	}
-
 
 	private boolean isNoteLocationValid() {
 		return noteTmp.getLatitude() != null
@@ -2324,65 +2458,18 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
-	/**
-	 * Manages clicks on attachment dialog
-	 */
-	@SuppressLint("InlinedApi")
-	private class AttachmentOnClickListener implements OnClickListener {
 
-		@Override
-		public void onClick(View v) {
-			switch (v.getId()) {
-				// Photo from camera
-				case R.id.camera:
-					takePhoto();
-					attachmentDialog.dismiss();
-					break;
-				case R.id.recording:
-					if (!isRecording) {
-						startRecording(v);
-					} else {
-						isRecording = false;
-						stopRecording();
-						addRecordToAttachments();
-
-						attachmentDialog.dismiss();
-					}
-					break;
-				case R.id.video:
-					takeVideo();
-					attachmentDialog.dismiss();
-					break;
-				case R.id.files:
-					Intent filesIntent;
-					filesIntent = new Intent(Intent.ACTION_GET_CONTENT);
-					filesIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-					filesIntent.addCategory(Intent.CATEGORY_OPENABLE);
-					filesIntent.setType("*/*");
-					startActivityForResult(filesIntent, FILES);
-					attachmentDialog.dismiss();
-					break;
-				case R.id.sketch:
-					takeSketch(null);
-					attachmentDialog.dismiss();
-					break;
-				case R.id.location:
-					displayLocationDialog();
-					attachmentDialog.dismiss();
-					break;
-				case R.id.pushbullet:
-					MessagingExtension.mirrorMessage(mainActivity, getString(R.string.app_name),
-							getString(R.string.pushbullet),
-							getNoteContent(), BitmapFactory.decodeResource(getResources(),
-									R.drawable.ic_stat_literal_icon),
-							null, 0);
-					attachmentDialog.dismiss();
-					break;
-				default:
-					Log.e(Constants.TAG, "Wrong element choosen: " + v.getId());
-			}
-		}
+	private void displayLocationDialog() {
+		getLocation(new OnGeoUtilResultListenerImpl(mainActivity, mFragment, noteTmp));
 	}
+
+
+
+	private void getLocation(OnGeoUtilResultListener onGeoUtilResultListener) {
+		PermissionsHelper.requestPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION, R.string
+			.permission_coarse_location, snackBarPlaceholder, () -> GeocodeHelper.getLocation(onGeoUtilResultListener));
+	}
+
 
 
 	public void onEventMainThread(PushbulletReplyEvent pushbulletReplyEvent) {
