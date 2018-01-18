@@ -31,6 +31,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
@@ -129,6 +130,18 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
 	public void onEvent(PasswordRemovedEvent passwordRemovedEvent) {
 		init();
 	}
+
+
+    //@Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        //return ((AppCompatActivity)this).onKeyDown(keyCode, event);
+
+        //вариант: можно выполнять super, а потом всё равно возвращать false.
+
+        // override BaseActivity's unclear behavior.
+        return !(keyCode == KeyEvent.KEYCODE_MENU) && super.onKeyDown(keyCode, event);
+    }
+
 
 
 	private void init() {
