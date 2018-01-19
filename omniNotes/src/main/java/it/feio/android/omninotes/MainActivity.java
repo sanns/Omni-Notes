@@ -21,6 +21,7 @@ import android.app.DatePickerDialog.OnDateSetListener;
 import android.app.TimePickerDialog.OnTimeSetListener;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -430,17 +431,12 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
         }
     }
 
-
-    /**
-     * Notes sharing
-     */
-    public void shareNote(Note note) {
-
+    protected Intent createShareNoteIntent(Note note){
         String titleText = note.getTitle();
 
         String contentText = titleText
-                + System.getProperty("line.separator")
-                + note.getContent();
+          + System.getProperty("line.separator")
+          + note.getContent();
 
 
         Intent shareIntent = new Intent();
@@ -449,22 +445,26 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
             shareIntent.setAction(Intent.ACTION_SEND);
             shareIntent.setType("text/plain");
 
-            // Intent with single image attachment
         } else if (note.getAttachmentsList().size() == 1) {
+            // Intent with single image attachment
             shareIntent.setAction(Intent.ACTION_SEND);
             shareIntent.setType(note.getAttachmentsList().get(0).getMime_type());
             shareIntent.putExtra(Intent.EXTRA_STREAM, note.getAttachmentsList().get(0).getUri());
 
-            // Intent with multiple images
         } else if (note.getAttachmentsList().size() > 1) {
+            // Intent with multiple images
             shareIntent.setAction(Intent.ACTION_SEND_MULTIPLE);
+
+            // Для этого случая, телеграм принимает только аттачменты, выкидывая экстра тему и текст. Причем, если файлы не картики хоть один, то принимает не как "фотопленку".
+
             ArrayList<Uri> uris = new ArrayList<>();
-            // A check to decide the mime type of attachments to share is done here
-            HashMap<String, Boolean> mimeTypes = new HashMap<>();
+            HashMap<String, Boolean> mimeTypes = new HashMap<>(); // todo а зачем Map ?
             for (Attachment attachment : note.getAttachmentsList()) {
                 uris.add(attachment.getUri());
                 mimeTypes.put(attachment.getMime_type(), true);
             }
+
+            // A check to decide the mime type of attachments to share is done here
             // If many mime types are present a general type is assigned to intent
             if (mimeTypes.size() > 1) {
                 shareIntent.setType("*/*");
@@ -472,12 +472,29 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
                 shareIntent.setType((String) mimeTypes.keySet().toArray()[0]);
             }
 
+            // откуда вк и телега знают, что здесь, а не в intent data будут лежать uri?
             shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
         }
         shareIntent.putExtra(Intent.EXTRA_SUBJECT, titleText);
         shareIntent.putExtra(Intent.EXTRA_TEXT, contentText);
 
-        startActivity(Intent.createChooser(shareIntent, getResources().getString(R.string.share_message_chooser)));
+        return shareIntent;
+    }
+
+    /**
+     * Notes sharing
+     */
+    public void shareNote(Note note) {
+        Intent shareIntent = createShareNoteIntent(note);
+
+        Intent chooser = Intent.createChooser(shareIntent, getResources().getString(R.string.share_message_chooser));
+
+        Log.d( "Intents resolved" , getPackageManager().queryIntentActivities(shareIntent, PackageManager.MATCH_DEFAULT_ONLY).toString() );
+
+        // Verify the original intent will resolve to at least one activity
+        if (shareIntent.resolveActivity(getPackageManager()) != null) {
+            startActivity(chooser);
+        }
     }
 
 
@@ -504,13 +521,6 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
     }
 
 
-    @Override
-    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        DetailFragment f = (DetailFragment) mFragmentManager.findFragmentByTag(FRAGMENT_DETAIL_TAG);
-        if (f != null && f.isAdded()) {
-            f.onTimeSetListener.onTimeSet(view, hourOfDay, minute);
-        }
-    }
 
 
     @Override
@@ -521,4 +531,15 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
             f.onDateSetListener.onDateSet(view, year, monthOfYear, dayOfMonth);
         }
     }
+
+
+    @Override
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        DetailFragment f = (DetailFragment) mFragmentManager.findFragmentByTag(FRAGMENT_DETAIL_TAG);
+        if (f != null && f.isAdded()) {
+            f.onTimeSetListener.onTimeSet(view, hourOfDay, minute);
+        }
+    }
+
+
 }
