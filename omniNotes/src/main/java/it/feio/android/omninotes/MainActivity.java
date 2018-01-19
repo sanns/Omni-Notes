@@ -294,6 +294,12 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
     }
 
 
+
+
+
+
+
+
     public DrawerLayout getDrawerLayout() {
         return drawerLayout;
     }
@@ -324,7 +330,10 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
     }
 
 
-    private void handleIntents() {
+    /**
+    * функция для ...
+    * */
+    private void handleIntents() { // все if здесь следовало бы поменять на elseif ?
         Intent i = getIntent();
 
         if (i.getAction() == null) return;
@@ -381,7 +390,11 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
         finish();
     }
 
-
+    /**
+     * некий признак интента, по которому надо открыть запись.
+     * @param i
+     * @return
+     */
     private boolean receivedIntent(Intent i) {
         return Constants.ACTION_SHORTCUT.equals(i.getAction())
                 || Constants.ACTION_NOTIFICATION_CLICK.equals(i.getAction())
@@ -414,20 +427,26 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
         EventBus.getDefault().post(new SwitchFragmentEvent(SwitchFragmentEvent.Direction.PARENT));
     }
 
+    /**
+     * set DetailFragment as content with a note as bundle.
 
+     */
     public void switchToDetail(Note note) {
-        FragmentTransaction transaction = mFragmentManager.beginTransaction();
-        animateTransition(transaction, TRANSITION_HORIZONTAL);
-        DetailFragment mDetailFragment = new DetailFragment();
+
         Bundle b = new Bundle();
         b.putParcelable(Constants.INTENT_NOTE, note);
+        DetailFragment mDetailFragment = new DetailFragment();
         mDetailFragment.setArguments(b);
+
+        FragmentTransaction transaction = mFragmentManager.beginTransaction();
+        animateTransition(transaction, TRANSITION_HORIZONTAL);
+
         if (mFragmentManager.findFragmentByTag(FRAGMENT_DETAIL_TAG) == null) {
-            transaction.replace(R.id.fragment_container, mDetailFragment, FRAGMENT_DETAIL_TAG).addToBackStack
-                    (FRAGMENT_LIST_TAG).commitAllowingStateLoss();
+            transaction.replace(R.id.fragment_container, mDetailFragment, FRAGMENT_DETAIL_TAG)
+            .addToBackStack(FRAGMENT_LIST_TAG).commitAllowingStateLoss(); // имя означает, куда следует вернуться при back?
         } else {
-            transaction.replace(R.id.fragment_container, mDetailFragment, FRAGMENT_DETAIL_TAG).addToBackStack
-                    (FRAGMENT_DETAIL_TAG).commitAllowingStateLoss();
+            transaction.replace(R.id.fragment_container, mDetailFragment, FRAGMENT_DETAIL_TAG)
+              .addToBackStack(FRAGMENT_DETAIL_TAG).commitAllowingStateLoss();
         }
     }
 
