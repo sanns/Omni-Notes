@@ -80,19 +80,19 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-		setTheme(R.style.OmniNotesTheme_ApiSpec);
+        setTheme(R.style.OmniNotesTheme_ApiSpec);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-		EventBus.getDefault().register(this);
+        EventBus.getDefault().register(this);
 
         // This method starts the bootstrap chain.
         checkPassword();
 
         initUI();
 
-		if (IntroActivity.mustRun()) {
-			startActivity(new Intent(this.getApplicationContext(), IntroActivity.class));
-		}
+        if (IntroActivity.mustRun()) {
+            startActivity(new Intent(this.getApplicationContext(), IntroActivity.class));
+        }
 
         new UpdaterTask(this).execute();
     }
@@ -112,20 +112,20 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
     }
 
 
-	private void checkPassword() {
-		if (prefs.getString(Constants.PREF_PASSWORD, null) != null
-				&& prefs.getBoolean("settings_password_access", false)) {
+    private void checkPassword() {
+        if (prefs.getString(Constants.PREF_PASSWORD, null) != null
+          && prefs.getBoolean("settings_password_access", false)) {
             PasswordHelper.requestPassword(this, passwordConfirmed -> {
-				if (passwordConfirmed) {
-					init();
-				} else {
-					finish();
-				}
-			});
+                if (passwordConfirmed) {
+                    init();
+                } else {
+                    finish();
+                }
+            });
         } else {
             init();
-		}
-	}
+        }
+    }
 
 
 	public void onEvent(PasswordRemovedEvent passwordRemovedEvent) {
@@ -145,12 +145,15 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
 
 
 
+
+
+
 	private void init() {
         mFragmentManager = getSupportFragmentManager();
 
-        NavigationDrawerFragment mNavigationDrawerFragment = (NavigationDrawerFragment) mFragmentManager
+        NavigationDrawerFragment navigationDrawerFragment = (NavigationDrawerFragment) mFragmentManager
                 .findFragmentById(R.id.navigation_drawer);
-        if (mNavigationDrawerFragment == null) {
+        if (navigationDrawerFragment == null) {
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.navigation_drawer, new NavigationDrawerFragment(), 
                     FRAGMENT_DRAWER_TAG).commit();
@@ -262,12 +265,14 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
         // ListFragment
         f = checkFragmentInstance(R.id.fragment_container, ListFragment.class);
         if (f != null) {
+            boolean openOnExit = prefs.getBoolean("settings_navdrawer_on_exit", false);
+
             // Before exiting from app the navigation drawer is opened
-            if (prefs.getBoolean("settings_navdrawer_on_exit", false) && getDrawerLayout() != null && 
-                    !getDrawerLayout().isDrawerOpen(GravityCompat.START)) {
+            if (openOnExit
+            && getDrawerLayout() != null && !getDrawerLayout().isDrawerOpen(GravityCompat.START)) {
                 getDrawerLayout().openDrawer(GravityCompat.START);
-            } else if (!prefs.getBoolean("settings_navdrawer_on_exit", false) && getDrawerLayout() != null && 
-                    getDrawerLayout().isDrawerOpen(GravityCompat.START)) {
+            } else if (!openOnExit
+            && getDrawerLayout() != null && getDrawerLayout().isDrawerOpen(GravityCompat.START)) {
                 getDrawerLayout().closeDrawer(GravityCompat.START);
             } else {
                 if (!((ListFragment)f).closeFab()) {
@@ -345,7 +350,8 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
         if (receivedIntent(i)) {
             Note note = i.getParcelableExtra(Constants.INTENT_NOTE);
             if (note == null) {
-                note = DbHelper.getInstance().getNote(i.getIntExtra(Constants.INTENT_KEY, 0));
+                note = DbHelper.getInstance()
+                .getNote(i.getIntExtra(Constants.INTENT_KEY, 0));
             }
             // Checks if the same note is already opened to avoid to open again
             if (note != null && noteAlreadyOpened(note)) {
