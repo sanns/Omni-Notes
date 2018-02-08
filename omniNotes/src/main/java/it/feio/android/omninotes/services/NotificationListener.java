@@ -36,7 +36,7 @@ public class NotificationListener extends NotificationListenerService {
 
 	@Override
 	public void onNotificationPosted(StatusBarNotification sbn) {
-		Log.d(Constants.TAG, "Notification posted for note: " + sbn.getId());
+		Log.d(Constants.TAG, "Notification posted for note: " + sbn.getPackageName() +" "+ sbn.getId());
 	}
 
 
@@ -44,21 +44,28 @@ public class NotificationListener extends NotificationListenerService {
 	public void onNotificationRemoved(StatusBarNotification sbn) {
 		if (sbn.getPackageName().equals(getPackageName())) {
 			EventBus.getDefault().post(new NotificationRemovedEvent(sbn));
-			Log.d(Constants.TAG, "Notification removed for note: " + sbn.getId());
+			Log.d(Constants.TAG, "Notification removed for note: " + sbn.getId() + " tag:"+ sbn.getTag());
 		}
 	}
 
 
+	// как указано, чтоб вызывался этот метод?
 	// why receive event at the same file which throws it?
 	public void onEventAsync(NotificationRemovedEvent event) {
-		Long noteId = Long.valueOf(event.statusBarNotification.getTag());
+		String idTag = event.statusBarNotification.getTag();
+		// some of notifications may regard leaked memory and not belong to expected code
+		if(idTag == null) return;
+
+		Long noteId = Long.valueOf(idTag);
 		Note note = DbHelper.getInstance().getNote(noteId);
 		if (!DateUtils.isFuture(note.getAlarm())) {
 			DbHelper.getInstance().setReminderFired(noteId, true);
 		}
 	}
 
-
+/**
+ * Looks like should have been called hasPermission() for notifications listening.
+ * */
 	/**
 	 * Is this app permitted to access notifications.
 	 * */
