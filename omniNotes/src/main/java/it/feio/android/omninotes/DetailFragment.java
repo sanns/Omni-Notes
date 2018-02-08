@@ -1356,8 +1356,11 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			pushbulletSelection.setOnClickListener(new AttachmentOnClickListener());
 		}
 
+		final int EXPERIMENTAL_VALUE = -500; // todo здесь надо высоту пяти пунктов.
+
 		try {
-			attachmentDialog.showAsDropDown(anchor);
+		//todo в доках сказано, что если не хватает места, то оно само адаптируется, но у меня просто сплющивается всплывашка по высоте в два пикселя.
+			attachmentDialog.showAsDropDown(anchor, 0, EXPERIMENTAL_VALUE);
 		} catch (Exception e) {
 			mainActivity.showMessage(R.string.error, ONStyle.ALERT);
 
