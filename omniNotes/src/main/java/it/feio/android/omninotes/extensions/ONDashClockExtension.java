@@ -61,43 +61,47 @@ public class ONDashClockExtension extends DashClockExtension {
     protected void onUpdateData(int reason) {
 
         Map<Counters, List<Note>> notesCounters = getNotesCounters();
-        int reminders = notesCounters.get(Counters.REMINDERS).size();
+        int remindersCount = notesCounters.get(Counters.REMINDERS).size();
 
         StringBuilder expandedTitle = new StringBuilder();
-        expandedTitle.append(notesCounters.get(Counters.ACTIVE).size()).append(" ").append(getString(R.string.notes).toLowerCase());
-        if (reminders > 0) {
-            expandedTitle.append(", ").append(reminders).append(" ").append(getString(R.string.reminders));
+        expandedTitle.append(
+          notesCounters.get(Counters.ACTIVE).size()
+        ).append(" ").append(getString(R.string.notes).toLowerCase());
+
+        if (remindersCount > 0) {
+            expandedTitle.append(", ").append(remindersCount).append(" ").append(getString(R.string.reminders));
         }
 
         StringBuilder expandedBody = new StringBuilder();
 
-		if (notesCounters.get(Counters.TODAY).size() > 0) {
-			expandedBody.append(notesCounters.get(Counters.TODAY).size()).append(" ").append(getString(R.string.today)).append(":");
-			for (Note todayReminder : notesCounters.get(Counters.TODAY)) {
-				expandedBody.append(System.getProperty("line.separator")).append(("☆ ")).append(getNoteTitle(this,
-						todayReminder));
-			}
-			expandedBody.append("\n");
-		}
+        if (notesCounters.get(Counters.TODAY).size() > 0) {
+          expandedBody.append(notesCounters.get(Counters.TODAY).size()).append(" ").append(getString(R.string.today)).append(":");
+          for (Note todayReminder : notesCounters.get(Counters.TODAY)) {
+            expandedBody.append(System.getProperty("line.separator")).append(("☆ ")).append(getNoteTitle(this,
+                todayReminder));
+          }
+          expandedBody.append("\n");
+        }
 
-		if (notesCounters.get(Counters.TOMORROW).size() > 0) {
-			expandedBody.append(notesCounters.get(Counters.TOMORROW).size()).append(" ").append(getString(R.string.tomorrow)).append(":");
-			for (Note tomorrowReminder : notesCounters.get(Counters.TOMORROW)) {
-				expandedBody.append(System.getProperty("line.separator")).append(("☆ ")).append(getNoteTitle(this,
-						tomorrowReminder));
-			}
-		}
+        if (notesCounters.get(Counters.TOMORROW).size() > 0) {
+          expandedBody.append(notesCounters.get(Counters.TOMORROW).size()).append(" ").append(getString(R.string.tomorrow)).append(":");
+          for (Note tomorrowReminder : notesCounters.get(Counters.TOMORROW)) {
+            expandedBody.append(System.getProperty("line.separator")).append(("☆ ")).append(getNoteTitle(this,
+                tomorrowReminder));
+          }
+        }
 
         // Publish the extension data update.
-		Intent launchIntent = new Intent(this, MainActivity.class);
-		launchIntent.setAction(Intent.ACTION_MAIN);
+        Intent launchIntent = new Intent(this, MainActivity.class);
+        launchIntent.setAction(Intent.ACTION_MAIN);
         publishUpdate(new ExtensionData()
-                .visible(true)
-                .icon(R.drawable.ic_stat_literal_icon)
-                .status(String.valueOf(notesCounters.get(Counters.ACTIVE).size()))
-                .expandedTitle(expandedTitle.toString())
-                .expandedBody(expandedBody.toString())
-                .clickIntent(launchIntent));
+          .visible(true)
+          .icon(R.drawable.ic_stat_literal_icon)
+          .status(String.valueOf(notesCounters.get(Counters.ACTIVE).size()))
+          .expandedTitle(expandedTitle.toString())
+          .expandedBody(expandedBody.toString())
+          .clickIntent(launchIntent)
+        );
     }
 
 
@@ -113,16 +117,20 @@ public class ONDashClockExtension extends DashClockExtension {
         List<Note> today = new ArrayList<>();
         List<Note> tomorrow = new ArrayList<>();
         for (Note note : DbHelper.getInstance().getNotesActive()) {
-            activeNotes.add(note);
-            if (note.getAlarm() != null && !note.isReminderFired()) {
-                reminders.add(note);
-                if (DateUtils.isSameDay(Long.valueOf(note.getAlarm()), Calendar.getInstance().getTimeInMillis())) {
-                    today.add(note);
-				} else if ((Long.valueOf(note.getAlarm()) - Calendar.getInstance().getTimeInMillis()) / (1000 * 60 *
-						60) < 24) {
-					tomorrow.add(note);
-				}
+          activeNotes.add(note);
+          if (note.getAlarm() != null && !note.isReminderFired()) {
+            reminders.add(note);
+            if (DateUtils.isSameDay(
+              Long.valueOf(note.getAlarm()),
+              Calendar.getInstance().getTimeInMillis()
+            )) {
+              today.add(note);
+            } else if (
+              (Long.valueOf(note.getAlarm()) - Calendar.getInstance().getTimeInMillis())
+              / (1000 * 60 * 60) < 24) {
+              tomorrow.add(note);
             }
+          }
         }
         noteCounters.put(Counters.ACTIVE, activeNotes);
         noteCounters.put(Counters.REMINDERS, reminders);
