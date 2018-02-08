@@ -51,6 +51,7 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -86,6 +87,7 @@ import it.feio.android.omninotes.async.notes.NoteProcessorDelete;
 import it.feio.android.omninotes.async.notes.NoteProcessorTrash;
 import it.feio.android.omninotes.db.DbHelper;
 import it.feio.android.omninotes.helpers.NotesHelper;
+import it.feio.android.omninotes.models.Attachment;
 import it.feio.android.omninotes.models.Category;
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.models.ONStyle;
@@ -96,6 +98,7 @@ import it.feio.android.omninotes.models.adapters.NoteAdapter;
 import it.feio.android.omninotes.models.holders.NoteViewHolder;
 import it.feio.android.omninotes.models.listeners.OnViewTouchedListener;
 import it.feio.android.omninotes.models.views.Fab;
+import it.feio.android.omninotes.models.views.InterceptorFrameLayout;
 import it.feio.android.omninotes.models.views.InterceptorLinearLayout;
 import it.feio.android.omninotes.utils.AnimationsHelper;
 import it.feio.android.omninotes.utils.Constants;
@@ -205,8 +208,46 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         }
         View view = inflater.inflate(R.layout.fragment_list, container, false);
         ButterKnife.bind(this, view);
+
+        InterceptorFrameLayout root = (InterceptorFrameLayout) view;
+        /*root.setInterceptCondition((event)->{
+            if(event.getAction() == MotionEvent.ACTION_DOWN) mStart = event.getX();
+            if(event.getAction() == MotionEvent.ACTION_UP
+            && event.getX() > mStart + 10) return true;
+
+            return false;
+        });*/
+        root.setInterceptCondition(condition);
+
+
+
         return view;
     }
+
+    float mStart;
+    InterceptorFrameLayout.IInterceptCondition condition = new InterceptorFrameLayout.IInterceptCondition() {
+        @Override
+        public boolean sureIntercept(MotionEvent event) {
+            Log.d("Sanz event", String.valueOf(event.getX()));
+
+
+            if(event.getAction() == MotionEvent.ACTION_DOWN) mStart = event.getX();
+            if(event.getAction() == MotionEvent.ACTION_MOVE
+              && event.getX() > mStart + 20) {
+                return true; //80px уже не интерцептятся так же , как и после того как ушли влево-вправо.
+            }
+              // похоже, дело в скорости изменения X(). Если медленно, то срабатывает longclick? Или еще какой кастомный перехват?
+              //почему ? requestDisallowIntecept кидает потомок ?
+              //todo пролема с запуском не из дебага.
+
+            return false;
+        }
+    };
+
+
+
+
+
 
 
     @Override
