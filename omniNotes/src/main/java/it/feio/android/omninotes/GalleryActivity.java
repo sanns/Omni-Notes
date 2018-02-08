@@ -84,7 +84,7 @@ public class GalleryActivity extends ActionBarActivity {
 
     @Override
     public void onStart() {
-		((OmniNotes)getApplication()).getAnalyticsHelper().trackScreenView(getClass().getName());
+        ((OmniNotes) getApplication()).getAnalyticsHelper().trackScreenView(getClass().getName());
         super.onStart();
     }
 
@@ -138,7 +138,7 @@ public class GalleryActivity extends ActionBarActivity {
             imageUris.add(mAttachment.getUri());
         }
 
-		GalleryPagerAdapter pagerAdapter = new GalleryPagerAdapter(this, imageUris);
+        GalleryPagerAdapter pagerAdapter = new GalleryPagerAdapter(this, imageUris);
         mViewPager.setOffscreenPageLimit(3);
         mViewPager.setAdapter(pagerAdapter);
         mViewPager.setCurrentItem(clickedImage);
@@ -190,6 +190,9 @@ public class GalleryActivity extends ActionBarActivity {
     }
 
 
+    /**
+     * Вызывает запуск видео, если ACTION_UP произошло не дальше 30пх от ACTION_DOWN.
+     */
     OnViewTouchedListener screenTouches = new OnViewTouchedListener() {
         private final int MOVING_THRESHOLD = 30;
         float x;
