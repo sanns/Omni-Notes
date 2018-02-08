@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 
 
+/**
+ * This activity seems like only shows an instant dialog */
 public class SnoozeActivity extends ActionBarActivity implements OnReminderPickedListener, DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener {
 
     private Note note;
@@ -54,9 +56,12 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getIntent().getParcelableExtra(Constants.INTENT_NOTE) != null) {
-            note = getIntent().getParcelableExtra(Constants.INTENT_NOTE);
-            manageNotification(getSharedPreferences(Constants.PREFS_NAME, MODE_MULTI_PROCESS));
+        Intent intent = getIntent();
+        Note extra = intent.getParcelableExtra(Constants.INTENT_NOTE);
+
+        if (extra != null) {
+            note = extra;
+            manageNotification();
         } else {
             Object[] notesObjs = (Object[]) getIntent().getExtras().get(Constants.INTENT_NOTE);
             notes = Arrays.copyOf(notesObjs, notesObjs.length, Note[].class);
@@ -65,16 +70,20 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     }
 
 
-    private void manageNotification(SharedPreferences prefs) {
-        if (Constants.ACTION_DISMISS.equals(getIntent().getAction())) {
+    private void manageNotification() {
+        SharedPreferences prefs = getSharedPreferences(Constants.PREFS_NAME, MODE_MULTI_PROCESS);
+        String action = getIntent().getAction();
+
+        if (Constants.ACTION_DISMISS.equals(action)) {
             setNextRecurrentReminder(note);
             finish();
-        } else if (Constants.ACTION_SNOOZE.equals(getIntent().getAction())) {
+        } else if (Constants.ACTION_SNOOZE.equals(action)) {
             String snoozeDelay = prefs.getString("settings_notification_snooze_delay", Constants.PREF_SNOOZE_DEFAULT);
             long newReminder = Calendar.getInstance().getTimeInMillis() + Integer.parseInt(snoozeDelay) * 60 * 1000;
             updateNoteReminder(newReminder, note);
             finish();
-        } else if (Constants.ACTION_POSTPONE.equals(getIntent().getAction())) {
+            //todo need to update in note alarm information.
+        } else if (Constants.ACTION_POSTPONE.equals(action)) {
             postpone(prefs, Long.parseLong(note.getAlarm()), note.getRecurrenceRule());
         } else {
             Intent intent = new Intent(this, MainActivity.class);
