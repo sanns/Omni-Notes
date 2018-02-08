@@ -56,15 +56,16 @@ public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
     @Override
     protected Note doInBackground(Note... params) {
         Note note = params[0];
+
         purgeRemovedAttachments(note);
-		boolean reminderMustBeSet = DateUtils.isFuture(note.getAlarm());
+        boolean reminderMustBeSet = DateUtils.isFuture(note.getAlarm());
         if (reminderMustBeSet) {
             note.setReminderFired(false);
         }
         note = DbHelper.getInstance().updateNote(note, updateLastModification);
-		if (reminderMustBeSet) {
-			ReminderHelper.addReminder(context, note);
-		}
+        if (reminderMustBeSet) {
+            ReminderHelper.addReminder(context, note);
+        }
         return note;
     }
 
