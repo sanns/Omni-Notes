@@ -42,6 +42,9 @@ import java.util.Locale;
 
 public class StorageHelper {
 
+    /**
+     * Can read to storage?
+     * */
     public static boolean checkStorage() {
         boolean mExternalStorageAvailable;
         boolean mExternalStorageWriteable;
@@ -253,6 +256,7 @@ public class StorageHelper {
     public static File createNewAttachmentFile(Context mContext, String extension) {
         File f = null;
         if (checkStorage()) {
+            // It creates a file not on sd in Android/data/<package/app>/files
             f = new File(mContext.getExternalFilesDir(null), createNewAttachmentName(extension));
         }
         return f;
@@ -262,6 +266,7 @@ public class StorageHelper {
     public static synchronized String createNewAttachmentName(String extension) {
         Calendar now = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat(Constants.DATE_FORMAT_SORTABLE);
+
         String name = sdf.format(now.getTime());
         name += extension != null ? extension : "";
         return name;

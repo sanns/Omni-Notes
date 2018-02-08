@@ -43,14 +43,19 @@ public class ReminderHelper {
 		}
 	}
 
-
+	/**
+	 * @param context of app is for getting alarm system service and PendingIntent.getBroadcast()*/
 	public static void addReminder(Context context, Note note, long reminder) {
 		if (DateUtils.isFuture(reminder)) {
-			Intent intent = new Intent(context, AlarmReceiver.class);
+			Intent intent = new Intent(context, AlarmReceiver.class); //видимо , этот бродкаст получит только AlarmReceiver в onReceive.
 			intent.putExtra(Constants.INTENT_NOTE, ParcelableUtil.marshall(note));
-			PendingIntent sender = PendingIntent.getBroadcast(context, getRequestCode(note), intent,
-					PendingIntent.FLAG_CANCEL_CURRENT);
-			AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+      PendingIntent sender = PendingIntent.getBroadcast(
+        context, getRequestCode(note), intent,
+        PendingIntent.FLAG_CANCEL_CURRENT
+      );
+
+      AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 				am.setExact(AlarmManager.RTC_WAKEUP, reminder, sender);
 			} else {
@@ -88,12 +93,11 @@ public class ReminderHelper {
 
 	public static void showReminderMessage(String reminderString) {
 		if (reminderString != null) {
-			long reminder = Long.parseLong(reminderString);
-			if (reminder > Calendar.getInstance().getTimeInMillis()) {
+			long reminderDate = Long.parseLong(reminderString);
+			if (reminderDate > Calendar.getInstance().getTimeInMillis()) {
 				new Handler(OmniNotes.getAppContext().getMainLooper()).post(() -> Toast.makeText(OmniNotes
 								.getAppContext(),
-						OmniNotes.getAppContext().getString(R.string.alarm_set_on) + " " + DateHelper.getDateTimeShort
-								(OmniNotes.getAppContext(), reminder), Toast.LENGTH_LONG).show());
+						OmniNotes.getAppContext().getString(R.string.alarm_set_on) + " " + DateHelper.getDateTimeShort(OmniNotes.getAppContext(), reminderDate), Toast.LENGTH_LONG).show());
 			}
 		}
 	}
