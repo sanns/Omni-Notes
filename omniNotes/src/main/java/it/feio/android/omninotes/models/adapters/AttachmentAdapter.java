@@ -47,12 +47,14 @@ public class AttachmentAdapter extends BaseAdapter {
     private LayoutInflater inflater;
 
 
-    public AttachmentAdapter(Activity mActivity, List<Attachment> attachmentsList, ExpandableHeightGridView mGridView) {
+    public AttachmentAdapter(
+      Activity mActivity,
+      List<Attachment> attachmentsList,
+      ExpandableHeightGridView mGridView
+    ) {
         this.mActivity = mActivity;
-		if (attachmentsList == null) {
-			attachmentsList = Collections.emptyList();
-		}
-		this.attachmentsList = attachmentsList;
+        if (attachmentsList == null) attachmentsList = Collections.emptyList();
+        this.attachmentsList = attachmentsList;
         this.inflater = (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -95,7 +97,8 @@ public class AttachmentAdapter extends BaseAdapter {
         }
 
         // Draw name in case the type is an audio recording
-        if (mAttachment.getMime_type() != null && mAttachment.getMime_type().equals(Constants.MIME_TYPE_AUDIO)) {
+        if (mAttachment.getMime_type() != null
+        && mAttachment.getMime_type().equals(Constants.MIME_TYPE_AUDIO)) {
             String text;
 
             if (mAttachment.getLength() > 0) {
@@ -141,9 +144,8 @@ public class AttachmentAdapter extends BaseAdapter {
 
 
 
-
+    // holder pattern to reduce calls to findViewById()
     public class AttachmentHolder {
-
         TextView text;
         SquareImageView image;
     }
