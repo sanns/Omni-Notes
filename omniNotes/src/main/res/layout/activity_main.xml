@@ -33,25 +33,41 @@
       >
 
         <RelativeLayout
+            android:id="@+id/content_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:paddingTop="@dimen/padding_top_kitkat">
 
-            <include android:id="@+id/toolbar" layout="@layout/toolbar" />
+            <include
+              android:id="@+id/toolbar"
+              layout="@layout/toolbar"
+
+
+              android:layout_height="?attr/actionBarSize"
+              android:layout_width="match_parent"
+              android:layout_alignParentBottom="true"
+              />
 
             <FrameLayout
                 android:id="@+id/fragment_container"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_below="@id/toolbar"
+
+                android:layout_above="@id/toolbar"
                 android:background="@color/gray_bg"/>
+                <!--layout_above for not to overlap the toolbar-->
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="4dp"
-                android:background="@drawable/toolbar_dropshadow"
-                android:layout_below="@id/toolbar"/>
+              android:layout_width="match_parent"
+              android:layout_height="4dp"
+              android:background="@drawable/toolbar_dropshadow"
+              android:backgroundTint="@color/colorPrimary"
+              android:backgroundTintMode="src_atop"
+              android:rotation="180"
+
+              android:layout_above="@id/toolbar"
+            />
 
             <include android:id="@+id/crouton_handle" layout="@layout/crouton_handle" />
 
