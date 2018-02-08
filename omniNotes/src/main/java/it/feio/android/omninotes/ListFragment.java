@@ -217,7 +217,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         if (savedInstanceState != null) {
             mainActivity.navigationTmp = savedInstanceState.getString("navigationTmp");
         }
-		init();
+        init();
     }
 
 
@@ -491,6 +491,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             if (getActionMode() != null) {
                 return false;
             }
+
             // Start the CAB using the ActionMode.Callback defined above
             mainActivity.startSupportActionMode(new ModeCallback());
             toggleListViewItem(view, position);
@@ -883,28 +884,41 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
     void editNote(final Note note, final View view) {
         if (note.isLocked() && !prefs.getBoolean("settings_password_access", false)) {
             PasswordHelper.requestPassword(mainActivity, passwordConfirmed -> {
-				if (passwordConfirmed) {
-					note.setPasswordChecked(true);
-					AnimationsHelper.zoomListItem(mainActivity, view, getZoomListItemView(view, note),
-							listRoot, buildAnimatorListenerAdapter(note));
-				}
-			});
+                if (passwordConfirmed) {
+                    note.setPasswordChecked(true);
+
+                    AnimationsHelper.zoomListItem(mainActivity, view,
+                      getZoomListItemView(view, note),
+                      listRoot, buildAnimatorListenerAdapter(note)
+                    );
+                }
+            });
         } else {
-            AnimationsHelper.zoomListItem(mainActivity, view, getZoomListItemView(view, note),
-					listRoot, buildAnimatorListenerAdapter(note));
+            AnimationsHelper.zoomListItem(mainActivity, view,
+              getZoomListItemView(view, note),
+              listRoot, buildAnimatorListenerAdapter(note)
+            );
         }
     }
 
 
-	void editNote2(Note note) {
+    /**
+     * After zoom-in animation:
+     * */
+    void editNote2(Note note) {
         if (note.get_id() == null) {
             Log.d(Constants.TAG, "Adding new note");
+
             // if navigation is a category it will be set into note
             try {
-                if (Navigation.checkNavigation(Navigation.CATEGORY) || !TextUtils.isEmpty(mainActivity.navigationTmp)) {
-					String categoryId = (String) ObjectUtils.defaultIfNull(mainActivity.navigationTmp,
-							Navigation.getCategory().toString());
-					note.setCategory(DbHelper.getInstance().getCategory(Long.parseLong(categoryId)));
+                if (Navigation.checkNavigation(Navigation.CATEGORY) || !TextUtils.isEmpty(
+                  mainActivity.navigationTmp)) {
+                    String categoryId = (String) ObjectUtils.defaultIfNull(
+                      mainActivity.navigationTmp,
+                      Navigation.getCategory().toString()
+                    );
+                    note.setCategory(DbHelper.getInstance().getCategory(Long.parseLong
+                    (categoryId)));
                 }
             } catch (NumberFormatException e) {
                 Log.v(Constants.TAG, "Maybe was not a category!");
@@ -917,7 +931,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         refreshListScrollPosition();
 
         // Fragments replacing
-        mainActivity.switchToDetail(note);
+        mainActivity.switchToDetail(note); //todo HERE!
     }
 
 
@@ -1132,9 +1146,11 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         View noteLayout = LayoutInflater.from(mainActivity).inflate(layoutSelected, null, false);
         noteViewHolder = new NoteViewHolder(noteLayout);
 
-		if (Navigation.getNavigation() != Navigation.UNCATEGORIZED && prefs.getBoolean(Constants.PREF_ENABLE_SWIPE,
-				true)) {
-			list.enableSwipeToDismiss((viewGroup, reverseSortedPositions) -> {
+        if (Navigation.getNavigation() != Navigation.UNCATEGORIZED && prefs.getBoolean(
+          Constants.PREF_ENABLE_SWIPE,
+          true
+        )) {
+            list.enableSwipeToDismiss((viewGroup, reverseSortedPositions) -> {
 
                 // Avoids conflicts with action mode
                 finishActionMode();
@@ -1144,7 +1160,10 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
                     try {
                         note = listAdapter.getItem(position);
                     } catch (IndexOutOfBoundsException e) {
-                        Log.d(Constants.TAG, "Please stop swiping in the zone beneath the last card");
+                        Log.d(
+                          Constants.TAG,
+                          "Please stop swiping in the zone beneath the last card"
+                        );
                         continue;
                     }
                     getSelectedNotes().add(note);
@@ -1160,7 +1179,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
                     } else {
                         // ...trash
                         if (prefs.getBoolean("settings_swipe_to_trash", false)
-                                || Navigation.checkNavigation(Navigation.ARCHIVE)) {
+                          || Navigation.checkNavigation(Navigation.ARCHIVE)) {
                             trashNotes(true);
                             // ...archive
                         } else {
@@ -1185,9 +1204,9 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             restoreListScrollPosition();
         }
 
-		animateListView();
+        animateListView();
 
-		closeFab();
+        closeFab();
     }
 
 
