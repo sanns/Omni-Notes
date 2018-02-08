@@ -24,6 +24,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.widget.DatePicker;
 
+//Google style?
 import com.fourmob.datetimepicker.date.DatePickerDialog;
 import com.sleepbot.datetimepicker.time.TimePickerDialog;
 
@@ -54,7 +55,12 @@ public class ReminderPickers implements OnDateSetListener, OnTimeSetListener, Re
     private long presetDateTime;
     private String recurrenceRule;
 
-
+    /**
+     * @param mActivity                 activity which implements onDateSetListener and receives
+     * the callback.
+     * @param mOnReminderPickedListener callbacks for completing date and time picking. Assumed
+     * that it is when last step - recurrence picked.
+     */
     public ReminderPickers(FragmentActivity mActivity,
                            OnReminderPickedListener mOnReminderPickedListener, int pickerType) {
         this.mActivity = mActivity;
@@ -73,6 +79,9 @@ public class ReminderPickers implements OnDateSetListener, OnTimeSetListener, Re
     }
 
 
+    /**
+     * Function that initiates date and time picking dialogs.
+     * */
     public void pick(Long presetDateTime, String recurrenceRule) {
         this.presetDateTime = DateUtils.getCalendar(presetDateTime).getTimeInMillis();
         this.recurrenceRule = recurrenceRule;
@@ -88,6 +97,7 @@ public class ReminderPickers implements OnDateSetListener, OnTimeSetListener, Re
 
     /**
      * Show date and time pickers
+     * big Google style?
      */
     protected void showDateTimeSelectors(long reminder) {
 
@@ -118,6 +128,7 @@ public class ReminderPickers implements OnDateSetListener, OnTimeSetListener, Re
     public void showDatePickerDialog(long presetDateTime) {
         Bundle b = new Bundle();
         b.putLong(DatePickerDialogFragment.DEFAULT_DATE, presetDateTime);
+
         DialogFragment picker = new DatePickerDialogFragment();
         picker.setArguments(b);
         picker.show(mActivity.getSupportFragmentManager(), Constants.TAG);
@@ -145,6 +156,11 @@ public class ReminderPickers implements OnDateSetListener, OnTimeSetListener, Re
     }
 
 
+
+
+    // тут веселая схемка получается: извне вызывается reminderPicker.pick -->
+    // reminderPicker.showDate... , который вызывает mainactivity.onDateSet , который ведет reminderPicker.onDateSet,
+    // который вызывает reminderPicker.showTime..., который вызывает mainactivity.onTimeSet , который ведет reminderPicker.onTimeSet,
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
         reminderYear = year;
@@ -173,7 +189,7 @@ public class ReminderPickers implements OnDateSetListener, OnTimeSetListener, Re
         Calendar c = Calendar.getInstance();
         c.set(reminderYear, reminderMonth, reminderDay, hourOfDay, minutes, 0);
         if (mOnReminderPickedListener != null) {
-            mOnReminderPickedListener.onReminderPicked(c.getTimeInMillis());
+            mOnReminderPickedListener.onReminderPicked(c.getTimeInMillis()); // passing the wanted date/time.
             mOnReminderPickedListener.onRecurrenceReminderPicked(rrule);
         }
     }
