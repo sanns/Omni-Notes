@@ -30,7 +30,7 @@ import it.feio.android.omninotes.SnoozeActivity;
 import it.feio.android.omninotes.db.DbHelper;
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.services.NotificationListener;
-import it.feio.android.omninotes.utils.*;
+import it.feio.android.omninotes.utils.*; //?????
 
 
 public class AlarmReceiver extends BroadcastReceiver {
@@ -65,7 +65,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 		Intent snoozeIntent = new Intent(mContext, SnoozeActivity.class);
 		snoozeIntent.setAction(Constants.ACTION_SNOOZE);
-		snoozeIntent.putExtra(Constants.INTENT_NOTE, (android.os.Parcelable) note);
+		snoozeIntent.putExtra(Constants.INTENT_NOTE, (android.os.Parcelable) note); // why casting?
 		PendingIntent piSnooze = PendingIntent.getActivity(mContext, getUniqueRequestCode(note), snoozeIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -75,8 +75,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 		PendingIntent piPostpone = PendingIntent.getActivity(mContext, getUniqueRequestCode(note), postponeIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
-		String snoozeDelay = mContext.getSharedPreferences(Constants.PREFS_NAME,
-				Context.MODE_MULTI_PROCESS).getString("settings_notification_snooze_delay", "10");
+		String snoozeDelay = prefs.getString("settings_notification_snooze_delay", "10"); // this value can become  unactual by the time user sees it. Because preferences can be changed unrelated to notification action text. Confirmed by experiment.
 
 		// Next create the bundle and initialize it
 		Intent intent = new Intent(mContext, SnoozeActivity.class);
@@ -89,9 +88,11 @@ public class AlarmReceiver extends BroadcastReceiver {
 		// Workaround to fix problems with multiple notifications
 		intent.setAction(Constants.ACTION_NOTIFICATION_CLICK + Long.toString(System.currentTimeMillis()));
 
-		// Creates the PendingIntent
+		// Creates the Content Intent
 		PendingIntent notifyIntent = PendingIntent.getActivity(mContext, getUniqueRequestCode(note), intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
+
+
 
 		NotificationsHelper notificationsHelper = new NotificationsHelper(mContext);
 		notificationsHelper.createNotification(R.drawable.ic_stat_notification, title, notifyIntent).setLedActive()
