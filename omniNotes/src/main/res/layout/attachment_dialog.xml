@@ -16,19 +16,23 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:pixlui="http://schemas.android.com/apk/com.neopixl.pixlui"
-    android:id="@+id/attachment_dialog_root"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/bg_popup"
-    android:orientation="vertical"
-    android:paddingBottom="8dp"
-    android:paddingLeft="8dp"
-    android:paddingRight="16dp"
-    android:paddingTop="8dp"
-    android:scrollbarSize="4dp"
-    android:scrollbarStyle="insideInset"
-    android:scrollbarThumbVertical="@drawable/scroll_bar" >
+  xmlns:pixlui="http://schemas.android.com/apk/com.neopixl.pixlui"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/attachment_dialog_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/bg_popup"
+  android:orientation="vertical"
+  android:paddingBottom="8dp"
+  android:paddingLeft="8dp"
+  android:paddingRight="16dp"
+  android:paddingTop="8dp"
+  android:scrollbarSize="4dp"
+  android:scrollbarStyle="insideInset"
+  android:scrollbarThumbVertical="@drawable/scroll_bar"
+  tools:context="android.widget.PopupWindow"
+  tools:showIn="android.widget.PopupWindow"
+  >
 
     <LinearLayout
         android:layout_width="match_parent"
