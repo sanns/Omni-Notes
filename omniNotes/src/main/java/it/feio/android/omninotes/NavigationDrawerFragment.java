@@ -47,6 +47,8 @@ public class NavigationDrawerFragment extends Fragment {
     static final int BURGER = 0;
     static final int ARROW = 1;
 
+    // ActionBarDrawerToggle± ties together the proper interactions
+    // between the sliding drawer and the action bar app icon
     ActionBarDrawerToggle mDrawerToggle;
     DrawerLayout mDrawerLayout;
     private MainActivity mActivity;
@@ -192,7 +194,7 @@ public class NavigationDrawerFragment extends Fragment {
 
         // Styling options
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
-		mDrawerLayout.setDrawerListener(mDrawerToggle);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
         mDrawerToggle.setDrawerIndicatorEnabled(true);
 
         Log.d(Constants.TAG, "Finished navigation drawer initialization");
