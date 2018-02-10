@@ -28,8 +28,11 @@
         android:orderInCategory="100"
         android:title="@string/search"
         android:visible="false"
+
         app:actionViewClass="android.support.v7.widget.SearchView"
-        app:showAsAction="collapseActionView|always"/>
+        app:showAsAction="collapseActionView|always"
+        tools:visible="true"
+    />
     <item
         android:id="@+id/menu_filter"
         android:icon="@drawable/ic_filter_white_24dp"
@@ -140,7 +143,9 @@
         android:orderInCategory="600"
         android:title="@string/sort"
         android:visible="false"
-        app:showAsAction="ifRoom">
+        app:showAsAction="ifRoom"
+        tools:visible="true"
+        >
         <menu/>
     </item>
     <item
@@ -148,7 +153,9 @@
         android:orderInCategory="800"
         app:showAsAction="never"
         android:title="@string/expanded_view"
-        android:visible="false"/>
+        android:visible="false"
+        tools:visible="true"
+    />
 
     <item
         android:id="@+id/menu_contracted_view"
