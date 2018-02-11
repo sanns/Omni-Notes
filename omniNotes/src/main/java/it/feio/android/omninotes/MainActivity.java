@@ -29,6 +29,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -107,8 +108,12 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
 
 	private void initUI() {
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
+
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar == null) return;
+
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
     }
 
 
@@ -132,6 +137,15 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
 		init();
 	}
 
+    //public boolean dispatchKeyEvent(KeyEvent event) {
+    //    final int keycode = event.getKeyCode();
+    //    final int action = event.getAction();
+    //
+    //    if (keycode == KeyEvent.KEYCODE_MENU && action == KeyEvent.ACTION_UP) {
+    //        return true; // consume the key press
+    //    }
+    //    return super.dispatchKeyEvent(event);
+    //}
 
     //@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -153,12 +167,15 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
 
         NavigationDrawerFragment navigationDrawerFragment = (NavigationDrawerFragment) mFragmentManager
                 .findFragmentById(R.id.navigation_drawer);
+        // зачем-то проверяется, хотя в xml вшит NavigationDrawerFragment, и вряд ли там будет пусто:
         if (navigationDrawerFragment == null) {
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-            fragmentTransaction.replace(R.id.navigation_drawer, new NavigationDrawerFragment(), 
+            //replace <fragment> tag allowed?
+            fragmentTransaction.replace(R.id.navigation_drawer, new NavigationDrawerFragment(),
                     FRAGMENT_DRAWER_TAG).commit();
         }
 
+        // здесь добавляется основной фрагмент, не выдвижное меню.
         if (mFragmentManager.findFragmentByTag(FRAGMENT_LIST_TAG) == null) {
             FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
             fragmentTransaction.add(R.id.fragment_container, new ListFragment(), FRAGMENT_LIST_TAG).commit();
@@ -343,10 +360,13 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
 
         if (i.getAction() == null) return;
 
+        // интересно, как сюда можно попасть?
         if (Constants.ACTION_RESTART_APP.equals(i.getAction())) {
             SystemHelper.restartApp(getApplicationContext(), MainActivity.class);
         }
 
+        // откуда-то получили интент такого характера:
+        // выбираем Note , и меняем на него фрагмент
         if (receivedIntent(i)) {
             Note note = i.getParcelableExtra(Constants.INTENT_NOTE);
             if (note == null) {
@@ -377,6 +397,7 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
         }
 
         // Home launcher shortcut widget
+        // пустая заметка? что за шорткат у виджета?
         if (Constants.ACTION_SHORTCUT_WIDGET.equals(i.getAction())) {
             switchToDetail(new Note());
             return;
