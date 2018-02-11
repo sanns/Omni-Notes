@@ -16,10 +16,13 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/undobar"
-    style="@style/UndoBar"
-    android:orientation="horizontal"
-    android:visibility="gone">
+  xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/undobar"
+  style="@style/UndoBar"
+  android:orientation="horizontal"
+  android:visibility="gone"
+  tools:visibility="visible"
+  >
 
     <TextView
         android:id="@+id/undobar_message"
