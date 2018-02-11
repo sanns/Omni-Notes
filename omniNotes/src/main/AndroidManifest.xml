@@ -47,6 +47,7 @@
         android:name="it.feio.android.omninotes.OmniNotes"
         android:allowBackup="true"
         android:largeHeap="true"
+
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -81,11 +82,11 @@
 
             <intent-filter>
                 <action android:name="com.google.android.gm.action.AUTO_SEND" />
-
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <data android:mimeType="*/*" />
             </intent-filter>
+
+            <!--Can be a single intent-filter?-->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 
@@ -189,8 +190,10 @@
             android:theme="@style/Theme.AppCompat.Dialog" />
 
         <!-- Alarm broadcast receiver -->
+        <!--Без интент-фильтра будет принимать любой броадкаст или никакой? Видимо, для явной отправки бродкаста этому ресиверу нужно все равно ресивер указывать в манифесте.-->
         <receiver android:name="it.feio.android.omninotes.receiver.AlarmReceiver" />
 
+        <!--Если убрать этот ресивер, то после перезагрузки телефона не восстановятся напоминалки?-->
         <!-- Reboot broadcast receiver -->
         <receiver
             android:name="it.feio.android.omninotes.receiver.BootCompleteReceiver"
