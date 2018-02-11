@@ -1062,6 +1062,9 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
+    /**
+     * Fired means ..
+     * */
     public void setReminderFired(long noteId, boolean fired) {
         ContentValues values = new ContentValues();
         values.put(KEY_REMINDER_FIRED, fired);

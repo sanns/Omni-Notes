@@ -69,7 +69,9 @@ public class ExpandableHeightGridView extends GridView {
 //		this.expanded = expanded;
 //	}
 
-
+    /**
+     * sets 2 or 1 column depending on count of items in gridview?
+     */
     public void autoresize() {
         // Set gridview height
 //	    ViewGroup.LayoutParams layoutParams = getLayoutParams();
