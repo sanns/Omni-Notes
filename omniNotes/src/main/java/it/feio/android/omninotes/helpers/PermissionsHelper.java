@@ -17,12 +17,18 @@
 
 package it.feio.android.omninotes.helpers;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.provider.Settings;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.widget.Toast;
+
 import com.tbruyelle.rxpermissions.RxPermissions;
 import it.feio.android.omninotes.R;
 import it.feio.android.omninotes.models.listeners.OnPermissionRequestedListener;
@@ -30,7 +36,11 @@ import it.feio.android.omninotes.models.listeners.OnPermissionRequestedListener;
 
 public class PermissionsHelper {
 
+	public final static int PERMISSION_ACTIVITY_REQUEST_CODE = 1;
 
+	/**
+	 * Lets set a callback on when a permission is granted.
+	 * */
 	public static void requestPermission(Activity activity, String permission, int rationaleDescription, View
 			messageView, OnPermissionRequestedListener onPermissionRequestedListener) {
 
@@ -43,6 +53,7 @@ public class PermissionsHelper {
 						})
 						.show();
 			} else {
+				//false means neverAsk or first time asking.
 				requestPermissionExecute(activity, permission, onPermissionRequestedListener, messageView);
 			}
 		} else {
@@ -50,7 +61,9 @@ public class PermissionsHelper {
 		}
 	}
 
-
+	/**
+	 * Asks for permission and calls the callback if granted. Otherwise shows a snackbar with error. A button on snackbar leads to Settings app.
+	 * */
 	private static void requestPermissionExecute(Activity activity, String permission, OnPermissionRequestedListener
 			onPermissionRequestedListener, View messageView) {
 		RxPermissions.getInstance(activity)
@@ -60,8 +73,72 @@ public class PermissionsHelper {
 						onPermissionRequestedListener.onPermissionGranted();
 					} else {
 						String msg = activity.getString(R.string.permission_not_granted) + ": " + permission;
-						Snackbar.make(messageView, msg, Snackbar.LENGTH_LONG).show();
+						Snackbar.make(messageView, msg, Snackbar.LENGTH_LONG)
+						.setAction("Настройки", (View v) -> {
+							PermissionsHelper.startSettingsAppForResult(activity);
+						})
+						.show();
 					}
 				});
+	}
+
+
+
+	//SANZ17
+	public static void showNoPermissionSnackbar(Activity homeForResult, View messageView) {
+		Snackbar.make(messageView, "Для редактирования разрешений откройте настройки" , Snackbar.LENGTH_INDEFINITE)
+			.setAction("Настройки", new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					PermissionsHelper.startSettingsAppForResult(homeForResult);
+
+					Toast.makeText(homeForResult.getApplicationContext(),
+						"Откройте Разрешения", Toast.LENGTH_SHORT
+          ).show();
+				}
+			})
+			.show();
+	}
+
+
+
+
+	//cannot start activity for result from Context
+	public static void startSettingsAppForResult(Activity homeForResult) {
+		Intent appSettingsIntent = new Intent(
+			Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+			Uri.parse("package:" + homeForResult.getPackageName())
+		);
+		//todo antipattern? неправильно ,что здесь указан реквест код для активити, и запускается forResult, а сам результат отлавливаетяс там в том активти.
+		// todo передавать контекст между классами - антипаттерн?
+		homeForResult.startActivityForResult(appSettingsIntent, PERMISSION_ACTIVITY_REQUEST_CODE);
+	}
+
+
+	public static void checkForPermissions(int requestCode, Activity homeForResult, View snackbarPlace) {
+		if (requestCode == PermissionsHelper.PERMISSION_ACTIVITY_REQUEST_CODE) {
+			// попробовать выполнить действие, которое нельзя было сделать без нужного разрешения
+			if (ActivityCompat.checkSelfPermission(
+				homeForResult,
+				Manifest.permission.READ_EXTERNAL_STORAGE
+			) != PackageManager.PERMISSION_GRANTED) {
+
+				final String MESSAGE = "Чтение данных недоступно.";
+
+				if (snackbarPlace == null) return;
+
+				Snackbar.make(snackbarPlace, MESSAGE, Snackbar.LENGTH_LONG)
+					.setAction("Попробовать еще", new View.OnClickListener() {
+						@Override
+						public void onClick(View v) {
+							//инфа для пользователя, если разрешение Never ask.
+							PermissionsHelper.showNoPermissionSnackbar(
+								homeForResult, snackbarPlace
+							);
+						}
+					})
+					.show();
+			}
+		}
 	}
 }
