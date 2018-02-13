@@ -16,16 +16,27 @@
  */
 package it.feio.android.omninotes;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
+
+import it.feio.android.omninotes.helpers.PermissionsHelper;
 
 
 public class AboutActivity extends BaseActivity {
 
+    FrameLayout root;
+    AboutActivity mActivity = this;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
+
+        root = (FrameLayout) findViewById(R.id.root);
 
         WebView webview = (WebView) findViewById(R.id.webview);
         webview.loadUrl("file:///android_asset/html/about.html");
@@ -47,8 +58,30 @@ public class AboutActivity extends BaseActivity {
         return true;
     }
 
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.menu_settings, menu);
 
-    private void initUI() {
+    return super.onCreateOptionsMenu(menu);
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()){
+      case R.id.menu_go_to_settings:
+        PermissionsHelper.startSettingsAppForResult(mActivity);
+    }
+    return super.onOptionsItemSelected(item);
+  }
+
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    PermissionsHelper.checkForPermissions(requestCode, mActivity, root);
+  }
+
+
+  private void initUI() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
