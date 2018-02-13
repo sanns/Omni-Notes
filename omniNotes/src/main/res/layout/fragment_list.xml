@@ -14,11 +14,12 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<it.feio.android.omninotes.models.views.InterceptorFrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:pixlui="http://schemas.android.com/apk/com.neopixl.pixlui"
              xmlns:wheel="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
+  xmlns:tools="http://schemas.android.com/tools"
              android:layout_marginLeft="@dimen/activity_additional_margin"
              android:layout_marginRight="@dimen/activity_additional_margin">
 
@@ -28,12 +29,14 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+        <!--Search line-->
         <LinearLayout
                 android:id="@+id/search_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:visibility="gone"
+                tools:visibility="visible"
                 android:paddingLeft="@dimen/horizontal_margin"
                 android:paddingStart="@dimen/horizontal_margin">
 
@@ -44,7 +47,8 @@
                     android:layout_weight="1"
                     android:textAppearance="@style/Text.Small"
                     android:paddingTop="16dp"
-                    android:paddingBottom="8dp"/>
+                    android:paddingBottom="8dp"
+                    tools:text="Sometext"/>
 
             <ImageView
                     android:id="@+id/search_cancel"
@@ -130,4 +134,4 @@
             android:layout_gravity="bottom"
             android:layout_marginBottom="@dimen/navigation_bar_height"/>
 
-</FrameLayout>
+</it.feio.android.omninotes.models.views.InterceptorFrameLayout>
