@@ -36,7 +36,8 @@ import it.feio.android.omninotes.models.listeners.OnPermissionRequestedListener;
 
 public class PermissionsHelper {
 
-	public final static int PERMISSION_ACTIVITY_REQUEST_CODE = 1;
+	public static final int PERMISSION_REQUEST_CODE = 0;
+	public static final int PERMISSION_ACTIVITY_REQUEST_CODE = 1;
 
 	/**
 	 * Lets set a callback on when a permission is granted.
@@ -85,6 +86,38 @@ public class PermissionsHelper {
 
 
 	//SANZ17
+	/**
+	 * Checks for result according to request code. If not granted and rationale is false , shows the snackbar.
+	 *
+	 * */
+	public static void checkPermissionResult(int requestCode, int[] grantResults, View snackPlace, Activity homeForResult){
+
+		//Паттерн для андроида разрешения при Never Ask.
+		if (requestCode == PERMISSION_REQUEST_CODE) {
+			if (grantResults.length == 1
+				&& grantResults[0] != PackageManager.PERMISSION_GRANTED) {// Размер массива grantResults проверяется для того, чтобы удостовериться, что запрос разрешения не был прерван (в этом случае permissions и grantResults не будут содержать элементов). Такую ситуацию следует рассматривать не как запрет разрешения, а как отмену запроса на него.
+
+				//todo Надо как-то отличать 1 и 2: 1. когда человек только что ответил на запрос отказом, и не надо показывать snackbar 2. Когда получен отказ благодаря раннему выставлению NeverAsk, и тут-то есть смысл напомнить человеку о возможности зайти в настройки разрешений.
+				//тк в onRequestResult запрещена , то если ..Rationale возвращает false, значит стоит NeverAsk.
+				if (!ActivityCompat.shouldShowRequestPermissionRationale(
+					homeForResult,
+					Manifest.permission.READ_EXTERNAL_STORAGE
+				)) {
+					final String message = "Хочу разрешить геолокацию";
+
+					if (snackPlace == null) return ;
+
+					//инфа для пользователя, если разрешение Never ask.
+					PermissionsHelper.showNoPermissionSnackbar(homeForResult, snackPlace);
+					//todo надо тормозить активити подобно тому как всплывашка пермишна тормозит процесс
+					// . Есть решение Dialog?
+				}
+
+			}
+		}
+	}
+
+
 	public static void showNoPermissionSnackbar(Activity homeForResult, View messageView) {
 		Snackbar.make(messageView, "Для редактирования разрешений откройте настройки" , Snackbar.LENGTH_INDEFINITE)
 			.setAction("Настройки", new View.OnClickListener() {
@@ -115,7 +148,10 @@ public class PermissionsHelper {
 	}
 
 
-	public static void checkForPermissions(int requestCode, Activity homeForResult, View snackbarPlace) {
+	/**
+	 * returns true if request code matches
+	 * */
+	public static boolean checkForPermissions(int requestCode, Activity homeForResult, View snackbarPlace) {
 		if (requestCode == PermissionsHelper.PERMISSION_ACTIVITY_REQUEST_CODE) {
 			// попробовать выполнить действие, которое нельзя было сделать без нужного разрешения
 			if (ActivityCompat.checkSelfPermission(
@@ -125,7 +161,7 @@ public class PermissionsHelper {
 
 				final String MESSAGE = "Чтение данных недоступно.";
 
-				if (snackbarPlace == null) return;
+				if (snackbarPlace == null) return true;
 
 				Snackbar.make(snackbarPlace, MESSAGE, Snackbar.LENGTH_LONG)
 					.setAction("Попробовать еще", new View.OnClickListener() {
@@ -139,6 +175,8 @@ public class PermissionsHelper {
 					})
 					.show();
 			}
+			return true;
 		}
+		return false;
 	}
 }
