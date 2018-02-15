@@ -133,7 +133,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
 
     private List<Note> selectedNotes = new ArrayList<>();
     private SearchView searchView;
-    private MenuItem searchMenuItem;
+    private MenuItem searchMenuItem; //to make it collapse on drawer opening
     private Menu menu;
     private AnimationDrawable jinglesAnimation;
     private int listViewPosition;
@@ -656,9 +656,6 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         // Prevents some mysterious NullPointer on app fast-switching
         if (mainActivity == null) return;
 
-        // Save item as class attribute to make it collapse on drawer opening
-        searchMenuItem = menu.findItem(R.id.menu_search);
-
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) mainActivity.getSystemService(Context.SEARCH_SERVICE);
         searchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.menu_search));
@@ -667,6 +664,9 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
 
         // Expands the widget hiding other actionbar icons
         searchView.setOnQueryTextFocusChangeListener((v, hasFocus) -> setActionItemsVisibility(menu, hasFocus));
+
+        // Save item as class attribute to make it collapse on drawer opening
+        searchMenuItem = menu.findItem(R.id.menu_search);
 
         MenuItemCompat.setOnActionExpandListener(searchMenuItem, new MenuItemCompat.OnActionExpandListener() {
 
@@ -701,11 +701,10 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
                     @Override
                     public boolean onQueryTextChange(String pattern) {
 
-                        if (prefs.getBoolean(
-                          "settings_instant_search",
-                          false
-                        ) && searchLayout != null &&
-                          searchPerformed && mFragment.isAdded()) {
+                        if (prefs.getBoolean( "settings_instant_search", false)
+                        && searchLayout != null
+                        && searchPerformed
+                        && mFragment.isAdded()) {
                             searchTags = null;
                             searchQuery = pattern;
                             NoteLoaderTask.getInstance().execute("getNotesByPattern", pattern);
@@ -747,24 +746,31 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             fab.hideFab();
         }
         menu.findItem(R.id.menu_search).setVisible(!drawerOpen);
-        menu.findItem(R.id.menu_filter).setVisible(!drawerOpen && !filterPastReminders &&
-        navigationReminders &&
-          !searchViewHasFocus);
-        menu.findItem(R.id.menu_filter_remove).setVisible(!drawerOpen && filterPastReminders &&
-        navigationReminders
+        menu.findItem(R.id.menu_filter).setVisible(!drawerOpen
+          && !filterPastReminders
+          && navigationReminders
           && !searchViewHasFocus);
-        menu.findItem(R.id.menu_filter_category).setVisible(!drawerOpen &&
-        !filterArchivedInCategory &&
-          navigationCategory && !searchViewHasFocus);
-        menu.findItem(R.id.menu_filter_category_remove).setVisible(!drawerOpen &&
-        filterArchivedInCategory &&
-          navigationCategory && !searchViewHasFocus);
-        menu.findItem(R.id.menu_sort).setVisible(!drawerOpen && !navigationReminders &&
-        !searchViewHasFocus);
-        menu.findItem(R.id.menu_expanded_view).setVisible(!drawerOpen && !expandedView &&
-        !searchViewHasFocus);
-        menu.findItem(R.id.menu_contracted_view).setVisible(!drawerOpen && expandedView &&
-        !searchViewHasFocus);
+        menu.findItem(R.id.menu_filter_remove).setVisible(!drawerOpen
+          && filterPastReminders
+          && navigationReminders
+          && !searchViewHasFocus);
+        menu.findItem(R.id.menu_filter_category).setVisible(!drawerOpen
+          && !filterArchivedInCategory &&
+          navigationCategory
+          && !searchViewHasFocus);
+        menu.findItem(R.id.menu_filter_category_remove).setVisible(!drawerOpen
+          && filterArchivedInCategory
+          && navigationCategory
+          && !searchViewHasFocus);
+        menu.findItem(R.id.menu_sort).setVisible(!drawerOpen
+          && !navigationReminders
+          && !searchViewHasFocus);
+        menu.findItem(R.id.menu_expanded_view).setVisible(!drawerOpen
+          && !expandedView
+          && !searchViewHasFocus);
+        menu.findItem(R.id.menu_contracted_view).setVisible(!drawerOpen
+          && expandedView
+          && !searchViewHasFocus);
         menu.findItem(R.id.menu_empty_trash).setVisible(!drawerOpen && navigationTrash);
         menu.findItem(R.id.menu_tags).setVisible(searchViewHasFocus);
     }
@@ -791,7 +797,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
      * Performs one of the ActionBar button's actions after checked notes protection
      */
     public boolean performAction(MenuItem item, ActionMode actionMode) {
-        if (actionMode == null) { // that does ...
+        if (actionMode == null) { // not in action mode.
             switch (item.getItemId()) {
                 case android.R.id.home:
                     if (mainActivity.getDrawerLayout().isDrawerOpen(GravityCompat.START)) {
