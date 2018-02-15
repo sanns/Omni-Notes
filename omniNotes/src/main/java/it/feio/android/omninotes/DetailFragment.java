@@ -1324,6 +1324,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			if (isRecording) {
 				isRecording = false;
 				stopRecording();
+				addRecordToAttachments();
 			}
 		});
 
