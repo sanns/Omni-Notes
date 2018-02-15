@@ -373,7 +373,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             commitPending();
             list.clearChoices();
             if (getActionMode() != null) {
-                getActionMode().finish();
+                getActionMode();//.finish();//not to close action mode on submitting in SearchView. //todo why does it happen?
             }
         }
     }
