@@ -43,6 +43,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.util.Pair;
 import android.support.v4.view.MenuItemCompat;
@@ -1397,6 +1398,17 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 					takeVideo();
 					break;
 				case R.id.files:
+					// todo is this ActivityCompat a best api?
+					if (ActivityCompat.checkSelfPermission(
+						getActivity(),
+						Manifest.permission.READ_EXTERNAL_STORAGE
+					) != PackageManager.PERMISSION_GRANTED) {
+						requestPermissions(
+							new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+							PermissionsHelper.PERMISSION_REQUEST_CODE
+						);
+					}
+
 					Intent filesIntent;
 					filesIntent = new Intent(Intent.ACTION_GET_CONTENT);
 					filesIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -1700,6 +1712,8 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	@SuppressLint("NewApi")
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		if (PermissionsHelper.checkForPermissions(requestCode, getActivity(), root) ) return;
+
 		// Fetch uri from activities, store into adapter and refresh adapter
 		Attachment attachment;
 		if (resultCode == Activity.RESULT_OK) {
@@ -1765,6 +1779,22 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			new AttachmentTask(this, uri, name, this).execute();
 		}
 	}
+
+	public void onRequestPermissionsResult(
+		int requestCode,
+		String[] permissions,
+		int[] grantResults
+	) {
+		PermissionsHelper.checkPermissionResult(requestCode, grantResults, root, getActivity());
+	}
+
+
+
+
+
+
+
+
 
 
 	/**
