@@ -1712,7 +1712,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	@SuppressLint("NewApi")
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		if (PermissionsHelper.checkForPermissions(requestCode, getActivity(), root) ) return;
+		PermissionsHelper.checkForPermissions(requestCode, getActivity(), root);
 
 		// Fetch uri from activities, store into adapter and refresh adapter
 		Attachment attachment;
@@ -1721,6 +1721,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 				case TAKE_PHOTO:
 					attachment = new Attachment(attachmentUri, Constants.MIME_TYPE_IMAGE);
 					addAttachment(attachment);
+
 					mAttachmentAdapter.notifyDataSetChanged();
 					mGridView.autoresize();
 					break;
@@ -1746,6 +1747,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 				case SKETCH:
 					attachment = new Attachment(attachmentUri, Constants.MIME_TYPE_SKETCH);
 					addAttachment(attachment);
+					
 					mAttachmentAdapter.notifyDataSetChanged();
 					mGridView.autoresize();
 					break;
