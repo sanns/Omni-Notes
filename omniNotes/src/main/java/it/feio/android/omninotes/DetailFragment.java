@@ -265,7 +265,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 //		if (NavigationDrawerFragment.isDoublePanelActive()) { // Uncomment this code when double panel feature will be developed!
 //			mainActivity.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_OPEN);
 //		} else {
-			mainActivity.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+			//sanz mainActivity.getDrawerLayout().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
 //		}
 
 		// Restored temp note after orientation change
@@ -1746,6 +1746,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 				case SKETCH:
 					attachment = new Attachment(attachmentUri, Constants.MIME_TYPE_SKETCH);
 					addAttachment(attachment);
+
 					mAttachmentAdapter.notifyDataSetChanged();
 					mGridView.autoresize();
 					break;
