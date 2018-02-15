@@ -19,15 +19,21 @@ package it.feio.android.omninotes.models.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.FrameLayout;
 
 import it.feio.android.omninotes.models.listeners.OnViewTouchedListener;
 
 
+/**
+ * отличается от обычного FrameLayout тем, что
+ * в onInterceptTouchEvent() вызывается то, что назначено через setOnViewTouchedListener().
+ */
 public class InterceptorFrameLayout extends FrameLayout {
 
     private OnViewTouchedListener mOnViewTouchedListener;
+    protected IInterceptCondition mCondition;
 
 
     public InterceptorFrameLayout(Context context) {
@@ -45,12 +51,31 @@ public class InterceptorFrameLayout extends FrameLayout {
         if (mOnViewTouchedListener != null) {
             mOnViewTouchedListener.onViewTouchOccurred(ev);
         }
+        if(mCondition != null) {
+            boolean superResult = super.onInterceptTouchEvent(ev); //execute legacy behavior
+            return mCondition.sureIntercept(ev) || superResult; // return users intention first or ancestor result.
+        }
         return super.onInterceptTouchEvent(ev);
     }
 
+    @Override
+    public void requestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+        Log.d("IFL", "called"); // This callback is called sometimes and outcomes to swipe-to-dismiss. //todo something.
+        super.requestDisallowInterceptTouchEvent(disallowIntercept);
+    }
 
     public void setOnViewTouchedListener(OnViewTouchedListener mOnViewTouchedListener) {
         this.mOnViewTouchedListener = mOnViewTouchedListener;
+    }
+
+    public void setInterceptCondition(IInterceptCondition condition){
+        this.mCondition = condition;
+    };
+
+
+    // todo move out
+    public interface IInterceptCondition {
+        boolean sureIntercept(MotionEvent event);
     }
 
 }
