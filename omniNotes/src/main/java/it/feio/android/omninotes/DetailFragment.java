@@ -2333,7 +2333,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 
 				if (swiping) {
 					Log.v(Constants.TAG, "MotionEvent.ACTION_MOVE at position " + x + ", " + y);
-					if (Math.abs(x - startSwipeX) > Constants.SWIPE_OFFSET) {
+					if (startSwipeX - x > Constants.SWIPE_OFFSET) {
 						swiping = false;
 						FragmentTransaction transaction = mainActivity.getSupportFragmentManager().beginTransaction();
 						mainActivity.animateTransition(transaction, mainActivity.TRANSITION_VERTICAL);
