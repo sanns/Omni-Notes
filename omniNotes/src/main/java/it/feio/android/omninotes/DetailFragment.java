@@ -1768,7 +1768,9 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 
 	private void onActivityResultManageReceivedFiles(Intent intent) {
 		List<Uri> uris = new ArrayList<>();
-		if (Build.VERSION.SDK_INT > 16 && intent.getClipData() != null) {
+
+		//16 потому что ...
+		if (Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN && intent.getClipData() != null) {
 			for (int i = 0; i < intent.getClipData().getItemCount(); i++) {
 				uris.add(intent.getClipData().getItemAt(i).getUri());
 			}
@@ -2007,7 +2009,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		MainActivity.notifyAppWidgets(OmniNotes.getAppContext());
 
 		if (!activityPausing) {
-			EventBus.getDefault().post(new NotesUpdatedEvent());
+			EventBus.getDefault().post(new NotesUpdatedEvent()); //в результате ивента ставится аларм?
 			deleteMergedNotes(mergedNotesIds);
 
 			if (noteTmp.getAlarm() != null && !noteTmp.getAlarm().equals(note.getAlarm())) {
@@ -2327,6 +2329,8 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 				break;
 
 			case MotionEvent.ACTION_MOVE:
+				// create a new note if off-canvas swipe?
+
 				if (swiping) {
 					Log.v(Constants.TAG, "MotionEvent.ACTION_MOVE at position " + x + ", " + y);
 					if (Math.abs(x - startSwipeX) > Constants.SWIPE_OFFSET) {
@@ -2395,7 +2399,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 
 	@Override
 	public void onAttachingFileErrorOccurred(Attachment mAttachment) {
-		mainActivity.showMessage(R.string.error_saving_attachments, ONStyle.ALERT);
+		mainActivity.showMessage(R.string.error_saving_attachments, ONStyle.ALERT); // show upper snackbar that file failed.
 		if (noteTmp.getAttachmentsList().contains(mAttachment)) {
 			removeAttachment(mAttachment);
 			mAttachmentAdapter.notifyDataSetChanged();
