@@ -39,7 +39,7 @@ public class TagsHelper {
 
 
     /**
-     * Returns a map of space-separated text tokens (matched to hashtag pattern) to count of how many theirs found.
+     * Returns a map of space-separated text tokens (matched to hashtag pattern) to count of how many theirs found in a {note}.
      *
      *
      * Attention: now is resource-intensive algorithm to search whole note for hashtag text tokens.
@@ -62,22 +62,27 @@ public class TagsHelper {
     }
 
 
+    /**
+     * Creates a Pair of a tags-to-add string and of tags-to-remove list.
+     * @param selectedTags indices which are checked true in {tags}
+     * */
     public static Pair<String, List<Tag>> addTagToNote(List<Tag> tags, Integer[] selectedTags, Note note) {
         StringBuilder sbTags = new StringBuilder();
         List<Tag> tagsToRemove = new ArrayList<>();
         HashMap<String, Integer> tagsMap = retrieveTags(note);
-
         List<Integer> selectedTagsList = Arrays.asList(selectedTags);
+
+        //go trough all tags
         for (int i = 0; i < tags.size(); i++) {
             if (mapContainsTag(tagsMap, tags.get(i))) {
+                // tag is in the note, but not in the checked-in.
                 if (!selectedTagsList.contains(i)) {
                     tagsToRemove.add(tags.get(i));
                 }
             } else {
+                // tag is not in the note, but is in the checked-in.
                 if (selectedTagsList.contains(i)) {
-                    if (sbTags.length() > 0) {
-                        sbTags.append(" ");
-                    }
+                    if (sbTags.length() > 0) sbTags.append(" ");
                     sbTags.append(tags.get(i));
                 }
             }
