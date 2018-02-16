@@ -1577,6 +1577,10 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
     }
 
 
+    /**
+     * Will set or remove checks from {selectedTags}
+     * @param selectedTags indices which are checked true in {tags}
+     * */
     private void tagNotesExecute(List<Tag> tags, Integer[] selectedTags, Integer[] preSelectedTags) {
 
         // Retrieves selected tags
@@ -1593,15 +1597,19 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         // If list is empty again Mr Jingles will appear again
         if (listAdapter.getCount() == 0)
             list.setEmptyView(empyListItem);
+            //todo setEmptyView should be no-parameters
 
-        if (getActionMode() != null) {
-            getActionMode().finish();
-        }
+        finishActionMode();
 
+        //todo better be an interface for arbitrary activity.
         mainActivity.showMessage(R.string.tags_added, ONStyle.INFO);
     }
 
 
+    /**
+     *
+     * @param selectedTags indices which are checked true in {tags}
+     * */
     private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
 
         Pair<String, List<Tag>> taggingResult = TagsHelper.addTagToNote(tags, selectedTags, note);
