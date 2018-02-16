@@ -38,16 +38,28 @@ public class TagsHelper {
     }
 
 
-	public static HashMap<String, Integer> retrieveTags(Note note) {
-		HashMap<String, Integer> tagsMap = new HashMap<>();
-		for (String token : (note.getTitle() + " " + note.getContent()).replaceAll("\n", " ").trim().split(" ")) {
-			if (RegexPatternsConstants.HASH_TAG.matcher(token).matches()) {
-				int count = tagsMap.get(token) == null ? 0 : tagsMap.get(token);
-				tagsMap.put(token, ++count);
-			}
-		}
-		return tagsMap;
-	}
+    /**
+     * Returns a map of space-separated text tokens (matched to hashtag pattern) to count of how many theirs found.
+     *
+     *
+     * Attention: now is resource-intensive algorithm to search whole note for hashtag text tokens.
+     * */
+    // todo reduce computational complexity.
+    public static HashMap<String, Integer> retrieveTags(Note note) {
+        HashMap<String, Integer> tagsMap = new HashMap<>();
+
+        String[] wordsOfTheNote = (note.getTitle() + " " + note.getContent())
+          .replaceAll("\n", " ").trim().split(" ");
+
+        for (String token : wordsOfTheNote) {
+            if (RegexPatternsConstants.HASH_TAG.matcher(token).matches()) {
+                //increment count of found tokens in a hashmap.
+                int count = tagsMap.get(token) == null ? 0 : tagsMap.get(token);
+                tagsMap.put(token, ++count);
+            }
+        }
+        return tagsMap;
+    }
 
 
     public static Pair<String, List<Tag>> addTagToNote(List<Tag> tags, Integer[] selectedTags, Note note) {
@@ -109,25 +121,28 @@ public class TagsHelper {
         return getPreselectedTagsArray(notes, tags);
     }
 
+    public static Integer getIndexInList(String tagtext, List<Tag> tags) {
+        for (Tag tag : tags) {
+            if (tag.getText().equals(tagtext)) {
+                return tags.indexOf(tag);
+            }
+        }
+        return null;
+    }
 
     /**
-     * Returns empty Integer[] if more than one Note in notes.
+     * Returns empty Integer[] if more than one Note in notes. If one note then indices of every tag in {tags} List  that match this one note.
      * @param notes some notes
      * @param tags All tags for app.
      * */
     public static Integer[] getPreselectedTagsArray(List<Note> notes, List<Tag> tags) {
         final Integer[] preSelectedTags;
         if (notes.size() == 1) {
-            List<Integer> t = new ArrayList<>();
+            List<Integer> unknownSizeArray = new ArrayList<>();
             for (String noteTag : TagsHelper.retrieveTags(notes.get(0)).keySet()) {
-                for (Tag tag : tags) {
-                    if (tag.getText().equals(noteTag)) {
-                        t.add(tags.indexOf(tag));
-                        break;
-                    }
-                }
+                unknownSizeArray.add(getIndexInList(noteTag, tags));
             }
-            preSelectedTags = t.toArray(new Integer[t.size()]);
+            preSelectedTags = unknownSizeArray.toArray(new Integer[unknownSizeArray.size()]);
         } else {
             preSelectedTags = new Integer[]{};
         }
