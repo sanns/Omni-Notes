@@ -1566,14 +1566,14 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         final Integer[] preSelectedTags = TagsHelper.getPreselectedTagsArray(selectedNotes, tags);
 
         new MaterialDialog.Builder(mainActivity)
-                .title(R.string.select_tags)
-                .items(TagsHelper.getTagsArray(tags))
-                .positiveText(R.string.ok)
-                .itemsCallbackMultiChoice(preSelectedTags, (dialog, which, text) -> {
-                    dialog.dismiss();
-                    tagNotesExecute(tags, which, preSelectedTags);
-					return false;
-                }).build().show();
+          .title(R.string.select_tags)
+          .items(TagsHelper.getTagsArray(tags))
+          .positiveText(R.string.ok)
+          .itemsCallbackMultiChoice(preSelectedTags, (dialog, which, text) -> {
+              dialog.dismiss();
+              tagNotesExecute(tags, which, preSelectedTags);
+              return false;
+          }).build().show();
     }
 
 
