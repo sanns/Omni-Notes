@@ -110,6 +110,11 @@ public class TagsHelper {
     }
 
 
+    /**
+     * Returns empty Integer[] if more than one Note in notes.
+     * @param notes some notes
+     * @param tags All tags for app.
+     * */
     public static Integer[] getPreselectedTagsArray(List<Note> notes, List<Tag> tags) {
         final Integer[] preSelectedTags;
         if (notes.size() == 1) {
