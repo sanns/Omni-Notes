@@ -63,6 +63,7 @@ public class TagsHelper {
 
 
     /**
+     * Doesn't modify anything. Pure function.
      * Creates a Pair of a tags-to-add string and of tags-to-remove list.
      * @param selectedTags indices which are checked true in {tags}
      * */
