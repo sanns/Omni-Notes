@@ -1615,6 +1615,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         Pair<String, List<Tag>> taggingResult = TagsHelper.addTagToNote(tags, selectedTags, note);
 
         if (note.isChecklist()) {
+            // to do not add these tags as a check-list:
             note.setTitle(note.getTitle() + System.getProperty("line.separator") + taggingResult.first);
         } else {
             StringBuilder sb = new StringBuilder(note.getContent());
