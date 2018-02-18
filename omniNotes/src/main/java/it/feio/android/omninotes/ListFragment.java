@@ -211,13 +211,6 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         ButterKnife.bind(this, view);
 
         InterceptorFrameLayout root = (InterceptorFrameLayout) view;
-        /*root.setInterceptCondition((event)->{
-            if(event.getAction() == MotionEvent.ACTION_DOWN) mStart = event.getX();
-            if(event.getAction() == MotionEvent.ACTION_UP
-            && event.getX() > mStart + 10) return true;
-
-            return false;
-        });*/
         root.setInterceptCondition(condition);
 
 
