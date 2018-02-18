@@ -49,6 +49,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SubMenu;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.FrameLayout;
@@ -224,7 +225,9 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         return view;
     }
 
+    int mSlop;
     float mStart;
+
     InterceptorFrameLayout.IInterceptCondition condition = new InterceptorFrameLayout.IInterceptCondition() {
         @Override
         public boolean sureIntercept(MotionEvent event) {
@@ -233,7 +236,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
 
             if(event.getAction() == MotionEvent.ACTION_DOWN) mStart = event.getX();
             if(event.getAction() == MotionEvent.ACTION_MOVE
-              && event.getX() > mStart + 20) {
+              && event.getX() > mStart + mSlop) {
                 return true; //80px уже не интерцептятся так же , как и после того как ушли влево-вправо.
             }
               // похоже, дело в скорости изменения X(). Если медленно, то срабатывает longclick? Или еще какой кастомный перехват?
@@ -259,6 +262,8 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             mainActivity.navigationTmp = savedInstanceState.getString("navigationTmp");
         }
         init();
+
+        mSlop = ViewConfiguration.get(getContext()).getScaledTouchSlop(); // should be here?
     }
 
 
@@ -413,10 +418,10 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
 
         @Override
         public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            actionMode = mode;
             // Inflate the menu for the CAB
             MenuInflater inflater = mode.getMenuInflater();
             inflater.inflate(R.menu.menu_list, menu);
-            actionMode = mode;
             fab.setAllowed(isFabAllowed());
             fab.hideFab();
             return true;
