@@ -107,9 +107,10 @@ public class MainActivity extends BaseActivity implements OnDateSetListener, OnT
 
 
 	private void initUI() {
-        setSupportActionBar(toolbar);
-
         ActionBar actionBar = getSupportActionBar();
+        if (actionBar == null) setSupportActionBar(toolbar);
+
+        actionBar = getSupportActionBar();
         if (actionBar == null) return;
 
         actionBar.setDisplayHomeAsUpEnabled(true);
