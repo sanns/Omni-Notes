@@ -45,6 +45,7 @@ import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.util.Pair;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -1399,8 +1400,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 					takeVideo();
 					break;
 				case R.id.files:
-					// todo is this ActivityCompat a best api?
-					if (ActivityCompat.checkSelfPermission(
+					if (ContextCompat.checkSelfPermission(
 						getActivity(),
 						Manifest.permission.READ_EXTERNAL_STORAGE
 					) != PackageManager.PERMISSION_GRANTED) {
