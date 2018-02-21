@@ -67,7 +67,7 @@ public class TagsHelper {
      * Creates a Pair of a tags-to-add string and of tags-to-remove list.
      * @param selectedTags indices which are checked true in {tags}
      * */
-    public static Pair<String, List<Tag>> addTagToNote(List<Tag> tags, Integer[] selectedTags, Note note) {
+    public static Pair<String, List<Tag>> considerTagsOfNote(List<Tag> tags, Integer[] selectedTags, Note note) {
         StringBuilder sbTags = new StringBuilder();
         List<Tag> tagsToRemove = new ArrayList<>();
         HashMap<String, Integer> tagsMap = retrieveTags(note);

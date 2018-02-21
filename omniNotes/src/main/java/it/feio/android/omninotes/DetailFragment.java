@@ -1594,7 +1594,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 
 
 	private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
-		Pair<String, List<Tag>> taggingResult = TagsHelper.addTagToNote(tags, selectedTags, note);
+		Pair<String, List<Tag>> taggingResult = TagsHelper.considerTagsOfNote(tags, selectedTags, note);
 
 		StringBuilder sb;
 		if (noteTmp.isChecklist()) {
