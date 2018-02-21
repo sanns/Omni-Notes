@@ -1608,9 +1608,9 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 		dialog.show();
 	}
 
-
+	//todo combine with ListFragment.tagNote()
 	private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
-		Pair<String, List<Tag>> taggingResult = TagsHelper.considerTagsOfNote(tags, selectedTags, note);
+		Pair<String, List<Tag>> taggingResult = TagsHelper.considerTagsOfNote(tags, selectedTags, null, note);
 
 		StringBuilder sb;
 		if (noteTmp.isChecklist()) {

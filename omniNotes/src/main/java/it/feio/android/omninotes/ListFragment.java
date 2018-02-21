@@ -1631,7 +1631,7 @@ public class ListFragment extends BaseFragment implements  UndoBarController.Und
 
         // Retrieves selected tags
         for (Note note : getSelectedNotes()) {
-            tagNote(tags, selectedTags, note);
+            tagNote(tags, selectedTags, note, preSelectedTags);
         }
 
         // Clears data structures
@@ -1653,12 +1653,13 @@ public class ListFragment extends BaseFragment implements  UndoBarController.Und
 
 
     /**
-     *
+     * Add and remove tags in this {note}. Specifically for checklist and not.
      * @param selectedTags indices which are checked true in {tags}
+     * @param preselectedTags indices of {tags} which had been set true before confirming. To recognize which tags should stay intact.
      * */
-    private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
+    private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note, Integer[] preselectedTags) {
 
-        Pair<String, List<Tag>> taggingResult = TagsHelper.considerTagsOfNote(tags, selectedTags, note);
+        Pair<String, List<Tag>> taggingResult = TagsHelper.considerTagsOfNote(tags, selectedTags, preselectedTags, note);
 
         if (note.isChecklist()) {
             // to do not add these tags as a check-list:

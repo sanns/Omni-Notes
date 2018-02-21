@@ -67,18 +67,27 @@ public class TagsHelper {
      * Doesn't modify anything. Pure function.
      * Creates a Pair of a tags-to-add string and of tags-to-remove list.
      * @param selectedTags indices which are checked true in {tags}
+     * @param preselectedTags indices which had been set tot true before confirming
      * */
-    public static Pair<String, List<Tag>> considerTagsOfNote(List<Tag> tags, Integer[] selectedTags, Note note) {
+    public static Pair<String, List<Tag>> considerTagsOfNote(
+      List<Tag> tags,
+      Integer[] selectedTags,
+      Integer[] preselectedTags,
+      Note note
+    ) {
         StringBuilder sbTags = new StringBuilder();
         List<Tag> tagsToRemove = new ArrayList<>();
         HashMap<String, Integer> tagsMap = retrieveTags(note);
         List<Integer> selectedTagsList = Arrays.asList(selectedTags);
+        List<Integer> preselectedTagsList = preselectedTags == null ? null : Arrays.asList(preselectedTags);
 
         //go trough all tags
         for (int i = 0; i < tags.size(); i++) {
             if (mapContainsTag(tagsMap, tags.get(i))) {
                 // tag is in the note, but not in the checked-in.
-                if (!selectedTagsList.contains(i)) {
+                if (!selectedTagsList.contains(i) &&
+                    (preselectedTagsList == null || preselectedTagsList.contains(i))
+                ) {
                     tagsToRemove.add(tags.get(i));
                 }
             } else {
