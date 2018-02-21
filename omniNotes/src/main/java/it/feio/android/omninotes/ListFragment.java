@@ -97,7 +97,7 @@ import it.feio.android.omninotes.models.UndoBarController;
 import it.feio.android.omninotes.models.adapters.NavDrawerCategoryAdapter;
 import it.feio.android.omninotes.models.adapters.NoteAdapter;
 import it.feio.android.omninotes.models.holders.NoteViewHolder;
-import it.feio.android.omninotes.models.listeners.OnViewTouchedListener;
+//import it.feio.android.omninotes.models.listeners.OnViewTouchedListener;
 import it.feio.android.omninotes.models.views.Fab;
 import it.feio.android.omninotes.models.views.InterceptorFrameLayout;
 import it.feio.android.omninotes.models.views.InterceptorLinearLayout;
@@ -115,7 +115,7 @@ import it.feio.android.simplegallery.util.BitmapUtils;
 import static android.support.v4.view.ViewCompat.animate;
 
 
-public class ListFragment extends BaseFragment implements OnViewTouchedListener, UndoBarController.UndoListener {
+public class ListFragment extends BaseFragment implements  UndoBarController.UndoListener {
 
     private static final int REQUEST_CODE_CATEGORY = 1;
     private static final int REQUEST_CODE_CATEGORY_NOTES = 2;
@@ -531,6 +531,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
                 return false;
             }
 
+            // Здесь нельзя стартануть floating action mode, т.к. это активити - из supportv7
             // Start the CAB using the ActionMode.Callback defined above
             mainActivity.startSupportActionMode(new ModeCallback());
             toggleListViewItem(view, position);
@@ -550,7 +551,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             setCabTitle();
         });
 
-        listRoot.setOnViewTouchedListener(this);
+        listRoot.setOnViewTouchedListener(new OnViewTouchedListener());
     }
 
 
@@ -592,10 +593,15 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
     }
 
 
-    @Override
-    public void onViewTouchOccurred(MotionEvent ev) {
-        Log.v(Constants.TAG, "Notes list: onViewTouchOccurred " + ev.getAction());
-        commitPending();
+    /**
+     * On any touch event commit pending procedures?
+     * */
+    public class OnViewTouchedListener implements it.feio.android.omninotes.models.listeners.OnViewTouchedListener{
+        @Override
+        public void onViewTouchOccurred(MotionEvent ev) {
+            Log.v(Constants.TAG, "Notes list: onViewTouchOccurred " + ev.getAction());
+            commitPending();
+        }
     }
 
 
@@ -1602,20 +1608,25 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             return;
         }
 
+        /*Array of indices of only that tags which were already checked? */
         final Integer[] preSelectedTags = TagsHelper.getPreselectedTagsArray(selectedNotes, tags);
 
         new MaterialDialog.Builder(mainActivity)
-                .title(R.string.select_tags)
-                .items(TagsHelper.getTagsArray(tags))
-                .positiveText(R.string.ok)
-                .itemsCallbackMultiChoice(preSelectedTags, (dialog, which, text) -> {
-                    dialog.dismiss();
-                    tagNotesExecute(tags, which, preSelectedTags);
-					return false;
-                }).build().show();
+          .title(R.string.select_tags)
+          .positiveText(R.string.ok)
+          .items(TagsHelper.getTagsArray(tags))
+          .itemsCallbackMultiChoice(preSelectedTags, (dialog, which, text) -> {
+              tagNotesExecute(tags, which, preSelectedTags);
+              dialog.dismiss();
+              return false;
+          }).build().show();
     }
 
 
+    /**
+     * Will set or remove checks from {selectedTags}
+     * @param selectedTags indices which are checked true in {tags}
+     * */
     private void tagNotesExecute(List<Tag> tags, Integer[] selectedTags, Integer[] preSelectedTags) {
 
         // Retrieves selected tags
@@ -1632,20 +1643,25 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
         // If list is empty again Mr Jingles will appear again
         if (listAdapter.getCount() == 0)
             list.setEmptyView(empyListItem);
+            //todo setEmptyView should be no-parameters
 
-        if (getActionMode() != null) {
-            getActionMode().finish();
-        }
+        finishActionMode();
 
+        //todo better be an interface for arbitrary activity.
         mainActivity.showMessage(R.string.tags_added, ONStyle.INFO);
     }
 
 
+    /**
+     *
+     * @param selectedTags indices which are checked true in {tags}
+     * */
     private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
 
         Pair<String, List<Tag>> taggingResult = TagsHelper.addTagToNote(tags, selectedTags, note);
 
         if (note.isChecklist()) {
+            // to do not add these tags as a check-list:
             note.setTitle(note.getTitle() + System.getProperty("line.separator") + taggingResult.first);
         } else {
             StringBuilder sb = new StringBuilder(note.getContent());
