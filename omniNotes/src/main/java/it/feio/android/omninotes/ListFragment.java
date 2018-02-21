@@ -1658,7 +1658,7 @@ public class ListFragment extends BaseFragment implements  UndoBarController.Und
      * */
     private void tagNote(List<Tag> tags, Integer[] selectedTags, Note note) {
 
-        Pair<String, List<Tag>> taggingResult = TagsHelper.addTagToNote(tags, selectedTags, note);
+        Pair<String, List<Tag>> taggingResult = TagsHelper.considerTagsOfNote(tags, selectedTags, note);
 
         if (note.isChecklist()) {
             // to do not add these tags as a check-list:
