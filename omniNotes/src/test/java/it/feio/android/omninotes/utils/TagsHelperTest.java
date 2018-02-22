@@ -90,7 +90,7 @@ public class TagsHelperTest {
 		List<Tag> tags = new ArrayList<>();
 		tags.add(new Tag(newTag, 1));
 		tags.add(new Tag(TAG3, 1));
-		Pair<String, List<Tag>> newTags = TagsHelper.addTagToNote(tags, new Integer[]{0, 1}, note);
+		Pair<String, List<Tag>> newTags = TagsHelper.considerTagsOfNote(tags, new Integer[]{0, 1}, note);
 		assertTrue(newTags.first.contains(newTag));
 		assertFalse(newTags.first.contains(TAG3));
 	}

@@ -116,7 +116,7 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 
 
-public class DetailFragment extends BaseFragment implements OnReminderPickedListener, OnTouchListener,
+public class DetailFragment extends BaseFragment implements OnTouchListener,
 		OnGlobalLayoutListener, OnAttachingFileListener, TextWatcher, CheckListChangedListener, OnNoteSaved,
 		OnGeoUtilResultListener {
 
@@ -559,7 +559,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 			int pickerType = prefs.getBoolean("settings_simple_calendar", false) ? ReminderPickers.TYPE_AOSP :
 					ReminderPickers.TYPE_GOOGLE;
 
-			ReminderPickers reminderPicker = new ReminderPickers(mainActivity, mFragment, pickerType);
+			ReminderPickers reminderPicker = new ReminderPickers(mainActivity, mOnReminderListener, pickerType);
 			reminderPicker.pick(DateUtils.getPresetReminder(noteTmp.getAlarm()), noteTmp
 					.getRecurrenceRule());
 			onDateSetListener = reminderPicker;
@@ -2444,25 +2444,27 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 	}
 
 
-	@Override
-	public void onReminderPicked(long reminder) {
-		noteTmp.setAlarm(reminder);
-		if (mFragment.isAdded()) {
-			reminderIcon.setImageResource(R.drawable.ic_alarm_black_18dp);
-			datetime.setText(DateHelper.getNoteReminderText(reminder));
+	OnReminderPickedListener mOnReminderListener = new OnReminderPickedListener() {
+		@Override
+		public void onReminderPicked(long reminder) {
+			noteTmp.setAlarm(reminder);
+			if (mFragment.isAdded()) {
+				reminderIcon.setImageResource(R.drawable.ic_alarm_black_18dp);
+				datetime.setText(DateHelper.getNoteReminderText(reminder));
+			}
 		}
-	}
 
 
-	@Override
-	public void onRecurrenceReminderPicked(String recurrenceRule) {
-		noteTmp.setRecurrenceRule(recurrenceRule);
-		if (!TextUtils.isEmpty(recurrenceRule)) {
-			Log.d(Constants.TAG, "Recurrent reminder set: " + recurrenceRule);
-			datetime.setText(DateHelper.getNoteRecurrentReminderText(parseLong(noteTmp
+		@Override
+		public void onRecurrenceReminderPicked(String recurrenceRule) {
+			noteTmp.setRecurrenceRule(recurrenceRule);
+			if (!TextUtils.isEmpty(recurrenceRule)) {
+				Log.d(Constants.TAG, "Recurrent reminder set: " + recurrenceRule);
+				datetime.setText(DateHelper.getNoteRecurrentReminderText(parseLong(noteTmp
 					.getAlarm()), recurrenceRule));
+			}
 		}
-	}
+	};
 
 
 	@Override

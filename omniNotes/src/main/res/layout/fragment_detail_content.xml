@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:pixlui="http://schemas.android.com/apk/com.neopixl.pixlui"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:orientation="vertical"
-android:paddingEnd="@dimen/padding_half"
-android:paddingStart="@dimen/padding_half"
->
+  xmlns:pixlui="http://schemas.android.com/apk/com.neopixl.pixlui"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:orientation="vertical"
+  android:paddingEnd="@dimen/padding_half"
+  android:paddingStart="@dimen/padding_half"
+  >
 
     <com.neopixl.pixlui.components.textview.TextView
     android:id="@+id/location"
@@ -22,6 +23,8 @@ android:paddingStart="@dimen/padding_half"
     android:textColor="@color/location_text"
     android:visibility="gone"
     pixlui:typeface="Roboto-Regular.ttf"
+    tools:visibility="visible"
+    tools:text="What is it for?"
     />
 
     <LinearLayout
