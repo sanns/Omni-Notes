@@ -45,10 +45,10 @@ public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
     }
 
 
-    public SaveNoteTask(OnNoteSaved mOnNoteSaved, boolean updateLastModification) {
+    public SaveNoteTask(OnNoteSaved onNoteSaved, boolean updateLastModification) {
         super();
         this.context = OmniNotes.getAppContext();
-        this.mOnNoteSaved = mOnNoteSaved;
+        this.mOnNoteSaved = onNoteSaved;
         this.updateLastModification = updateLastModification;
     }
 
