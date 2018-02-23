@@ -1901,6 +1901,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 
 	/**
 	 * Save new notes, modify them or archive
+	 * @param onNoteSaved callback to call after AsyncTask-save.
 	 */
 	void saveNote(OnNoteSaved onNoteSaved) {
 
@@ -1919,13 +1920,9 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 			exitCroutonStyle = ONStyle.INFO;
 			goHome();
 			return;
-		}
-
-		if (saveNotNeeded()) {
+		} else if (saveNotNeeded()) {
 			exitMessage = "";
-			if (goBack) {
-				goHome();
-			}
+			if (goBack) goHome();
 			return;
 		}
 
@@ -1974,7 +1971,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 			MainActivity.notifyAppWidgets(OmniNotes.getAppContext());
 
 			if (!activityPausing) {
-				EventBus.getDefault().post(new NotesUpdatedEvent()); //в результате ивента ставится аларм?
+				EventBus.getDefault().post(new NotesUpdatedEvent()); //в результате ивента ставится аларм? Видимо, нет. Ивент - для других целей.
 				deleteMergedNotes(mergedNotesIds);
 
 				if (noteTmp.getAlarm() != null && !noteTmp.getAlarm().equals(note.getAlarm())) {
