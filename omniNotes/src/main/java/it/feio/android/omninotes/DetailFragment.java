@@ -320,7 +320,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 
 		// Checks "goBack" value to avoid performing a double saving
 		if (!goBack) {
-			saveNote(this);
+			saveNote(mOnNoteSaved);
 		}
 
 		if (mRecordHelper != null) mRecordHelper.destroyRecorder();
@@ -1786,7 +1786,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 				mainActivity.deleteNote(noteTmp);
 				goHome();
 			} else {
-				new SaveNoteTask(this, false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteOriginal);
+				new SaveNoteTask(mOnNoteSaved, false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteOriginal);
 			}
 			MainActivity.notifyAppWidgets(mainActivity);
 		} else {
@@ -1807,7 +1807,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 		goBack = true;
 		exitMessage = archive ? getString(R.string.note_archived) : getString(R.string.note_unarchived);
 		exitCroutonStyle = archive ? ONStyle.WARN : ONStyle.INFO;
-		saveNote(this);
+		saveNote(mOnNoteSaved);
 	}
 
 
@@ -1829,7 +1829,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 		} else {
 			ReminderHelper.addReminder(OmniNotes.getAppContext(), note);
 		}
-		saveNote(this);
+		saveNote(mOnNoteSaved);
 	}
 
 
@@ -1894,7 +1894,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 			exitMessage = getString(R.string.note_updated);
 			exitCroutonStyle = ONStyle.CONFIRM;
 			goBack = true;
-			saveNote(mOnNoteSaved);
+			saveNote(onNoteSaved);
 		}
 	}
 
