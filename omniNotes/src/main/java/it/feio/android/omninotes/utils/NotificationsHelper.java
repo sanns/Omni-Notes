@@ -46,6 +46,7 @@ public class NotificationsHelper {
 
     /**
      * Creation of notification on operations completed
+     * Notification is created with the builder. Showed via the manager.
      */
     public NotificationsHelper createNotification(int smallIcon, String title, PendingIntent notifyIntent) {
         mBuilder = new NotificationCompat.Builder(mContext).setSmallIcon(smallIcon).setContentTitle(title)
@@ -137,11 +138,15 @@ public class NotificationsHelper {
     }
 
 
+    /**
+     * Finally build a notification and notify with it.
+     * @param id a {tag} for NotificationManager.notify(String {tag}, ...)
+     * */
     public NotificationsHelper show(long id) {
         if (mNotificationManager == null) {
             mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
         }
-        Notification mNotification = mBuilder.build();
+        Notification mNotification = mBuilder.build(); // just to check the contentIntent.
         if (mNotification.contentIntent == null) {
             // Creates a dummy PendingIntent
             mBuilder.setContentIntent(PendingIntent.getActivity(mContext, 0, new Intent(),
