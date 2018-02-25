@@ -117,7 +117,7 @@ import static java.lang.Long.parseLong;
 
 
 public class DetailFragment extends BaseFragment implements OnTouchListener,
-		OnGlobalLayoutListener, OnAttachingFileListener, TextWatcher, CheckListChangedListener, OnNoteSaved,
+		OnGlobalLayoutListener, OnAttachingFileListener, TextWatcher, CheckListChangedListener,
 		OnGeoUtilResultListener {
 
 	private static final int TAKE_PHOTO = 1;
@@ -175,8 +175,8 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 	private Uri attachmentUri;
 	private AttachmentAdapter mAttachmentAdapter;
 	private PopupWindow attachmentDialog;
-	private Note note;
-	private Note noteTmp;
+	private Note note; // variable for currently stored info for opened note?
+	private Note noteTmp; // variable for current edits of the opened note?
 	private Note noteOriginal;
 	// Audio recording
 	protected AudioRecordHelper mRecordHelper;
@@ -322,7 +322,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 
 		// Checks "goBack" value to avoid performing a double saving
 		if (!goBack) {
-			saveNote(this);
+			saveNote(mOnNoteSaved);
 		}
 
 		if (mRecordHelper != null) mRecordHelper.destroyRecorder();
@@ -1824,7 +1824,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 				mainActivity.deleteNote(noteTmp);
 				goHome();
 			} else {
-				new SaveNoteTask(this, false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteOriginal);
+				new SaveNoteTask(mOnNoteSaved, false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteOriginal);
 			}
 			MainActivity.notifyAppWidgets(mainActivity);
 		} else {
@@ -1845,7 +1845,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 		goBack = true;
 		exitMessage = archive ? getString(R.string.note_archived) : getString(R.string.note_unarchived);
 		exitCroutonStyle = archive ? ONStyle.WARN : ONStyle.INFO;
-		saveNote(this);
+		saveNote(mOnNoteSaved);
 	}
 
 
@@ -1867,7 +1867,7 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 		} else {
 			ReminderHelper.addReminder(OmniNotes.getAppContext(), note);
 		}
-		saveNote(this);
+		saveNote(mOnNoteSaved);
 	}
 
 
@@ -1923,24 +1923,25 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 
 	private void navigateUp() {
 		afterSavedReturnsToList = true;
-		saveAndExit(this);
+		saveAndExit(mOnNoteSaved);
 	}
 
 
-	public void saveAndExit(OnNoteSaved mOnNoteSaved) {
+	public void saveAndExit(OnNoteSaved onNoteSaved) {
 		if (isAdded()) {
 			exitMessage = getString(R.string.note_updated);
 			exitCroutonStyle = ONStyle.CONFIRM;
 			goBack = true;
-			saveNote(mOnNoteSaved);
+			saveNote(onNoteSaved);
 		}
 	}
 
 
 	/**
 	 * Save new notes, modify them or archive
+	 * @param onNoteSaved callback to call after AsyncTask-save.
 	 */
-	void saveNote(OnNoteSaved mOnNoteSaved) {
+	void saveNote(OnNoteSaved onNoteSaved) {
 
 		// Changed fields
 		noteTmp.setTitle(getNoteTitle());
@@ -1957,20 +1958,16 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 			exitCroutonStyle = ONStyle.INFO;
 			goHome();
 			return;
-		}
-
-		if (saveNotNeeded()) {
+		} else if (saveNotNeeded()) {
 			exitMessage = "";
-			if (goBack) {
-				goHome();
-			}
+			if (goBack) goHome();
 			return;
 		}
 
 		noteTmp.setAttachmentsListOld(note.getAttachmentsList());
 
 		new SaveNoteTask(
-			mOnNoteSaved,
+			onNoteSaved,
 			lastModificationUpdatedNeeded()
 		).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteTmp);
 	}
@@ -2006,25 +2003,27 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 	* BaseNote overrides:
 	* */
 
-	@Override
-	public void onNoteSaved(Note noteSaved) {
-		MainActivity.notifyAppWidgets(OmniNotes.getAppContext());
+	OnNoteSaved mOnNoteSaved = new OnNoteSaved() {
+		@Override
+		public void onNoteSaved(Note noteSaved) {
+			MainActivity.notifyAppWidgets(OmniNotes.getAppContext());
 
-		if (!activityPausing) {
-			EventBus.getDefault().post(new NotesUpdatedEvent()); //в результате ивента ставится аларм?
-			deleteMergedNotes(mergedNotesIds);
+			if (!activityPausing) {
+				EventBus.getDefault().post(new NotesUpdatedEvent()); //в результате ивента ставится аларм? Видимо, нет. Ивент - для других целей.
+				deleteMergedNotes(mergedNotesIds);
 
-			if (noteTmp.getAlarm() != null && !noteTmp.getAlarm().equals(note.getAlarm())) {
-				ReminderHelper.showReminderMessage(noteTmp.getAlarm());
+				if (noteTmp.getAlarm() != null && !noteTmp.getAlarm().equals(note.getAlarm())) {
+					ReminderHelper.showReminderMessage(noteTmp.getAlarm());
+				}
+			}
+
+			note = new Note(noteSaved);
+
+			if (goBack) {
+				goHome();
 			}
 		}
-
-		note = new Note(noteSaved);
-
-		if (goBack) {
-			goHome();
-		}
-	}
+	};
 
 
 	private void deleteMergedNotes(List<String> mergedNotesIds) {
@@ -2448,7 +2447,9 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 		@Override
 		public void onReminderPicked(long reminder) {
 			noteTmp.setAlarm(reminder);
+
 			if (mFragment.isAdded()) {
+				//todo animate this image set:
 				reminderIcon.setImageResource(R.drawable.ic_alarm_black_18dp);
 				datetime.setText(DateHelper.getNoteReminderText(reminder));
 			}
@@ -2460,8 +2461,10 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 			noteTmp.setRecurrenceRule(recurrenceRule);
 			if (!TextUtils.isEmpty(recurrenceRule)) {
 				Log.d(Constants.TAG, "Recurrent reminder set: " + recurrenceRule);
-				datetime.setText(DateHelper.getNoteRecurrentReminderText(parseLong(noteTmp
-					.getAlarm()), recurrenceRule));
+
+				datetime.setText(DateHelper.getNoteRecurrentReminderText(parseLong(
+					noteTmp.getAlarm()
+				), recurrenceRule));
 			}
 		}
 	};

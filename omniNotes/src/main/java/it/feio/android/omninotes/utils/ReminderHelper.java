@@ -38,9 +38,10 @@ import java.util.Calendar;
 public class ReminderHelper {
 
 	public static void addReminder(Context context, Note note) {
-		if (note.getAlarm() != null) {
-			addReminder(context, note, Long.parseLong(note.getAlarm()));
-		}
+		String alarm = note.getAlarm();
+		if (alarm == null) return;
+
+		addReminder(context, note, Long.parseLong(alarm));
 	}
 
 	/**
@@ -49,8 +50,10 @@ public class ReminderHelper {
 		if (DateUtils.isFuture(reminder)) {
 			Intent intent = new Intent(context, AlarmReceiver.class); //видимо , этот бродкаст получит только AlarmReceiver в onReceive.
 			intent.putExtra(Constants.INTENT_NOTE, ParcelableUtil.marshall(note));
+
       PendingIntent sender = PendingIntent.getBroadcast(
-        context, getRequestCode(note), intent,
+        context, getRequestCode(note),
+        intent,
         PendingIntent.FLAG_CANCEL_CURRENT
       );
 
@@ -75,6 +78,7 @@ public class ReminderHelper {
 
 
 	static int getRequestCode(Note note) {
+		//Why could be no creation date?
 		Long longCode = note.getCreation() != null ? note.getCreation() : Calendar.getInstance().getTimeInMillis() / 1000L;
 		return longCode.intValue();
 	}

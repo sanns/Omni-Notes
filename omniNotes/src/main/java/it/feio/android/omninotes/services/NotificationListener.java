@@ -49,22 +49,26 @@ public class NotificationListener extends NotificationListenerService {
 	}
 
 
+	// why receive event at the same file which throws it?
 	public void onEventAsync(NotificationRemovedEvent event) {
-		Long nodeId = Long.valueOf(event.statusBarNotification.getTag());
-		Note note = DbHelper.getInstance().getNote(nodeId);
+		Long noteId = Long.valueOf(event.statusBarNotification.getTag());
+		Note note = DbHelper.getInstance().getNote(noteId);
 		if (!DateUtils.isFuture(note.getAlarm())) {
-			DbHelper.getInstance().setReminderFired(nodeId, true);
+			DbHelper.getInstance().setReminderFired(noteId, true);
 		}
 	}
 
 
+	/**
+	 * Is this app permitted to access notifications.
+	 * */
 	public static boolean isRunning() {
 
 		ContentResolver contentResolver = OmniNotes.getAppContext().getContentResolver();
 		String enabledNotificationListeners = Settings.Secure.getString(contentResolver,
 				"enabled_notification_listeners");
-		return enabledNotificationListeners != null && enabledNotificationListeners.contains(NotificationListener
-				.class.getSimpleName());
+		return enabledNotificationListeners != null
+			&& enabledNotificationListeners.contains(NotificationListener.class.getSimpleName());
 	}
 
 }

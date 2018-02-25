@@ -38,8 +38,10 @@ public class AlarmReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context mContext, Intent intent) {
 		try {
-			Note note = ParcelableUtil.unmarshall(intent.getExtras().getByteArray(Constants.INTENT_NOTE), Note
-					.CREATOR);
+			Note note = ParcelableUtil.unmarshall(
+				intent.getExtras().getByteArray(Constants.INTENT_NOTE),
+				Note.CREATOR
+			);
 			createNotification(mContext, note);
 			SnoozeActivity.setNextRecurrentReminder(note);
 			if (Build.VERSION.SDK_INT >= 18 && !NotificationListener.isRunning()) {
