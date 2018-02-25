@@ -33,6 +33,11 @@ import it.feio.android.omninotes.utils.date.DateUtils;
 import java.util.List;
 
 
+/**
+ * Saves the note.
+ * Sets the reminder.
+ * Only the first Note-param.
+ * */
 public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
 
     private Context context;
@@ -45,6 +50,9 @@ public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
     }
 
 
+    /**
+     * see class'es javadoc
+     * */
     public SaveNoteTask(OnNoteSaved onNoteSaved, boolean updateLastModification) {
         super();
         this.context = OmniNotes.getAppContext();
