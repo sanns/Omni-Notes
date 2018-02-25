@@ -173,8 +173,8 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 	private Uri attachmentUri;
 	private AttachmentAdapter mAttachmentAdapter;
 	private PopupWindow attachmentDialog;
-	private Note note;
-	private Note noteTmp;
+	private Note note; // variable for currently stored info for opened note?
+	private Note noteTmp; // variable for current edits of the opened note?
 	private Note noteOriginal;
 	// Audio recording
 	protected AudioRecordHelper mRecordHelper;
