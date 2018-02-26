@@ -25,6 +25,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Spanned;
 import android.util.Log;
+
+import java.util.Calendar;
+
 import it.feio.android.omninotes.R;
 import it.feio.android.omninotes.SnoozeActivity;
 import it.feio.android.omninotes.db.DbHelper;
@@ -34,19 +37,29 @@ import it.feio.android.omninotes.utils.*; //?????
 
 
 public class AlarmReceiver extends BroadcastReceiver {
+	SharedPreferences prefs;
+	String snoozeDelay;
 
 	@Override
 	public void onReceive(Context mContext, Intent intent) {
 		try {
+			// Retrieving preferences
+			prefs = mContext.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_MULTI_PROCESS);
+			snoozeDelay = prefs.getString("settings_notification_snooze_delay", Constants.PREF_SNOOZE_DEFAULT); // this value can become  unactual by the time user sees it. Because preferences can be changed unrelated to notification action text. Confirmed by experiment.
+
 			Note note = ParcelableUtil.unmarshall(
 				intent.getExtras().getByteArray(Constants.INTENT_NOTE),
 				Note.CREATOR
 			);
 			createNotification(mContext, note);
 			SnoozeActivity.setNextRecurrentReminder(note);
-			if (Build.VERSION.SDK_INT >= 18 && !NotificationListener.isRunning()) {
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && !NotificationListener.isRunning()) {
 				DbHelper.getInstance().setReminderFired(note.get_id(), true);
 			}
+
+			long newReminder = Calendar.getInstance().getTimeInMillis() + Integer.parseInt(snoozeDelay) * 60 * 1000;
+			SnoozeActivity.updateNoteReminder(newReminder, note);
 		} catch (Exception e) {
 			Log.e(Constants.TAG, "Error on receiving reminder", e);
 		}
@@ -55,8 +68,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 
 	private void createNotification(Context mContext, Note note) {
 
-		// Retrieving preferences
-		SharedPreferences prefs = mContext.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_MULTI_PROCESS);
 
 		// Prepare text contents
 		Spanned[] titleAndContent = TextHelper.parseTitleAndContent(mContext, note);
@@ -74,8 +85,6 @@ public class AlarmReceiver extends BroadcastReceiver {
 		postponeIntent.putExtra(Constants.INTENT_NOTE, (android.os.Parcelable) note);
 		PendingIntent piPostpone = PendingIntent.getActivity(mContext, getUniqueRequestCode(note), postponeIntent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
-
-		String snoozeDelay = prefs.getString("settings_notification_snooze_delay", "10"); // this value can become  unactual by the time user sees it. Because preferences can be changed unrelated to notification action text. Confirmed by experiment.
 
 		// Next create the bundle and initialize it
 		Intent intent = new Intent(mContext, SnoozeActivity.class);
@@ -98,6 +107,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 		notificationsHelper.createNotification(R.drawable.ic_stat_notification, title, notifyIntent).setLedActive()
 				.setMessage(text);
 
+		// todo why and how does it parcellate attachments?
 		if (note.getAttachmentsList().size() > 0 && !note.getAttachmentsList().get(0).getMime_type().equals(Constants
 				.MIME_TYPE_FILES)) {
 			notificationsHelper.setLargeIcon(BitmapHelper.getBitmapFromAttachment(mContext, note.getAttachmentsList()
@@ -105,15 +115,24 @@ public class AlarmReceiver extends BroadcastReceiver {
 		}
 
 		notificationsHelper.getBuilder()
-				.addAction(R.drawable.ic_material_reminder_time_light, it.feio.android.omninotes.utils.TextHelper
-						.capitalize(mContext.getString(R.string.snooze)) + ": " + snoozeDelay, piSnooze)
-				.addAction(R.drawable.ic_remind_later_light,
-						it.feio.android.omninotes.utils.TextHelper.capitalize(mContext.getString(R.string
-								.add_reminder)), piPostpone);
+			.addAction(
+				R.drawable.ic_material_reminder_time_light,
+				it.feio.android.omninotes.utils.TextHelper.capitalize(mContext.getString(R.string.snooze))
+					+ ": " + snoozeDelay,
+				piSnooze
+			)
+			.addAction(
+				R.drawable.ic_remind_later_light,
+				it.feio.android.omninotes.utils.TextHelper.capitalize(mContext.getString(R.string
+					.add_reminder)),
+				piPostpone
+			);
 
 		setRingtone(prefs, notificationsHelper);
 
 		setVibrate(prefs, notificationsHelper);
+
+		notificationsHelper.setOngoing();
 
 		notificationsHelper.show(note.get_id());
 	}
