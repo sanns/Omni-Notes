@@ -35,7 +35,7 @@ import java.util.List;
 
 /**
  * Saves the note.
- * Sets the reminder.
+ * Calls {@link ReminderHelper#addReminder ReminderHelper.addReminder}. Sets 'fired' false.
  * Only the first Note-param.
  * */
 public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
@@ -45,13 +45,16 @@ public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
     private OnNoteSaved mOnNoteSaved;
 
 
+    /**
+     * see class' javadoc
+     * */
     public SaveNoteTask(boolean updateLastModification) {
         this(null, updateLastModification);
     }
 
 
     /**
-     * see class'es javadoc
+     * see class' javadoc
      * */
     public SaveNoteTask(OnNoteSaved onNoteSaved, boolean updateLastModification) {
         super();
@@ -64,9 +67,14 @@ public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
     @Override
     protected Note doInBackground(Note... params) {
         Note note = params[0];
+        String alarm = note.getAlarm();
+
+        // в случае изменения времени напоминания новый pendingIntent перезапишет старый в AlarmManager.
+        // И только в случае очистки напоминания в приложении не было предусмотрено стирание из AlarmManager.
+        if (alarm == null) ReminderHelper.cancelAlarm(context, note);
 
         purgeRemovedAttachments(note);
-        boolean reminderMustBeSet = DateUtils.isFuture(note.getAlarm());
+        boolean reminderMustBeSet = DateUtils.isFuture(alarm);
         if (reminderMustBeSet) {
             note.setReminderFired(false);
         }
