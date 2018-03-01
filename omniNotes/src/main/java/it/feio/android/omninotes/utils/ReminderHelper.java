@@ -45,7 +45,9 @@ public class ReminderHelper {
 	}
 
 	/**
-	 * @param context of app is for getting alarm system service and PendingIntent.getBroadcast()*/
+	 * Will marshall the {note} and put it in broadcast.
+	 * @param context of app is for getting alarm system service and PendingIntent.getBroadcast()
+	 * */
 	public static void addReminder(Context context, Note note, long reminder) {
 		if (DateUtils.isFuture(reminder)) {
 			Intent intent = new Intent(context, AlarmReceiver.class); //видимо , этот бродкаст получит только AlarmReceiver в onReceive.
@@ -69,7 +71,7 @@ public class ReminderHelper {
 
 
 	/**
-	 * Checks if exists any reminder for given note
+	 * Checks if there is any reminder for a given note
 	 */
 	public static boolean checkReminder(Context context, Note note) {
 		return PendingIntent.getBroadcast(context, getRequestCode(note), new Intent(context, AlarmReceiver
@@ -95,13 +97,17 @@ public class ReminderHelper {
 	}
 
 
+	/**
+	 * Shows a toast
+	 * */
 	public static void showReminderMessage(String reminderString) {
 		if (reminderString != null) {
 			long reminderDate = Long.parseLong(reminderString);
 			if (reminderDate > Calendar.getInstance().getTimeInMillis()) {
-				new Handler(OmniNotes.getAppContext().getMainLooper()).post(() -> Toast.makeText(OmniNotes
-								.getAppContext(),
-						OmniNotes.getAppContext().getString(R.string.alarm_set_on) + " " + DateHelper.getDateTimeShort(OmniNotes.getAppContext(), reminderDate), Toast.LENGTH_LONG).show());
+				new Handler(OmniNotes.getAppContext().getMainLooper()).post(() -> Toast.makeText(
+						OmniNotes.getAppContext(),
+						OmniNotes.getAppContext().getString(R.string.alarm_set_on) + " " + DateHelper.getDateTimeShort(OmniNotes.getAppContext(), reminderDate), Toast.LENGTH_LONG)
+						.show());
 			}
 		}
 	}
