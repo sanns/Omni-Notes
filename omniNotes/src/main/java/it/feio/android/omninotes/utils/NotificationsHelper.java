@@ -153,7 +153,10 @@ public class NotificationsHelper {
                     PendingIntent.FLAG_UPDATE_CURRENT));
         }
         // Builds an anonymous Notification object from the builder, and passes it to the NotificationManager
-        mNotificationManager.notify(String.valueOf(id), 0, mBuilder.build());
+        Notification notification = mBuilder.build();
+        notification.flags |= Notification.FLAG_INSISTENT; //вибра продолжается пока не откроешь шторку
+
+        mNotificationManager.notify(String.valueOf(id), 0, notification);
         return this;
     }
 
