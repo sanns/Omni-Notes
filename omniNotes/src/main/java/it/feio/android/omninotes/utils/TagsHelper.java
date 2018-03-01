@@ -64,6 +64,17 @@ public class TagsHelper {
 
 
     /**
+     * Overloaded for back-compatibility
+     * */
+    public static Pair<String, List<Tag>> considerTagsOfNote(
+      List<Tag> tags,
+      Integer[] selectedTags,
+      Note note
+    ) {
+        return considerTagsOfNote(tags, selectedTags, null, note);
+    }
+
+    /**
      * Doesn't modify anything. Pure function.
      * Creates a Pair of a tags-to-add string and of tags-to-remove list.
      * @param selectedTags indices which are checked true in {tags}
