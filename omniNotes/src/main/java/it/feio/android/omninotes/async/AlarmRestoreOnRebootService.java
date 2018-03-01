@@ -41,9 +41,9 @@ public class AlarmRestoreOnRebootService extends IntentService {
 	@Override
 	protected void onHandleIntent(@Nullable Intent intent) {
 		Log.i(Constants.TAG, "System rebooted: service refreshing reminders");
-		Context mContext = getApplicationContext();
+		Context context = getApplicationContext();
 
-		BaseActivity.notifyAppWidgets(mContext);
+		BaseActivity.notifyAppWidgets(context);
 
 		List<Note> notes = DbHelper.getInstance().getNotesWithReminderNotFired();
 		Log.d(Constants.TAG, "Found " + notes.size() + " reminders");

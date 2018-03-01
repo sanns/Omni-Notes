@@ -97,8 +97,10 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
 
 
     private void postpone(SharedPreferences prefs, Long alarm, String recurrenceRule) {
-        int pickerType = prefs.getBoolean("settings_simple_calendar", false) ? ReminderPickers.TYPE_AOSP :
-				ReminderPickers.TYPE_GOOGLE;
+        int pickerType = prefs.getBoolean( "settings_simple_calendar", false)
+        ? ReminderPickers.TYPE_AOSP
+        : ReminderPickers.TYPE_GOOGLE;
+
         ReminderPickers reminderPicker = new ReminderPickers(this, this, pickerType);
         reminderPicker.pick(alarm, recurrenceRule);
         onDateSetListener = reminderPicker;
@@ -139,10 +141,16 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     }
 
 
+    /**
+     * Updates the note with new alarm property depending on recurrence rule. This leads to {@link SaveNoteTask SaveNoteTask}.
+     * Or saves a task in AsyncTask. Why?
+     * todo move out of Activity
+     * */
     public static void setNextRecurrentReminder(Note note) {
-        if (!TextUtils.isEmpty(note.getRecurrenceRule())) {
-            long nextReminder = DateHelper.nextReminderFromRecurrenceRule(Long.parseLong(note.getAlarm()), note
-					.getRecurrenceRule());
+        String rule = note.getRecurrenceRule();
+
+        if (!TextUtils.isEmpty(rule)) {
+            long nextReminder = DateHelper.nextReminderFromRecurrenceRule(Long.parseLong(note.getAlarm()), rule);
             if (nextReminder > 0) {
                 updateNoteReminder(nextReminder, note, true);
             }
@@ -152,7 +160,11 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     }
 
 
-    private static void updateNoteReminder(long reminder, Note note) {
+    /**
+     * Sets the alarm without updating the {note}
+     * //todo move from here
+     * */
+    public static void updateNoteReminder(long reminder, Note note) {
         updateNoteReminder(reminder, note, false);
     }
 
@@ -163,7 +175,7 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
             new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteToUpdate);
         } else {
             ReminderHelper.addReminder(OmniNotes.getAppContext(), noteToUpdate, reminder);
-			ReminderHelper.showReminderMessage(noteToUpdate.getAlarm());
+            ReminderHelper.showReminderMessage(noteToUpdate.getAlarm());
         }
     }
 
