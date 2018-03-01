@@ -88,12 +88,24 @@ public class ReminderHelper {
 
 	public static void removeReminder(Context context, Note note) {
 		if (!TextUtils.isEmpty(note.getAlarm())) {
-			AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-			Intent intent = new Intent(context, AlarmReceiver.class);
-			PendingIntent p = PendingIntent.getBroadcast(context, getRequestCode(note), intent, 0);
-			am.cancel(p);
-			p.cancel();
+			cancelAlarm(context, note);
 		}
+	}
+
+	/**
+	 * Instantly creates a PendingIntent same as for alarm,
+	 * but uses it for {@link AlarmManager#cancel AlarmManager.cancel()},
+	 * not {@link AlarmManager#set AlarmManager.set()} to time.
+	 * @param note for which cancel in {@link AlarmManager}.
+	 * */
+	public static void cancelAlarm(Context context, Note note) {
+		AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+		Intent intent = new Intent(context, AlarmReceiver.class);
+		PendingIntent p = PendingIntent.getBroadcast(context, getRequestCode(note), intent, 0);
+
+		am.cancel(p);
+		p.cancel();
 	}
 
 
