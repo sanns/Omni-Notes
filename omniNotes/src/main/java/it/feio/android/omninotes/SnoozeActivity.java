@@ -23,12 +23,11 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
-import it.feio.android.omninotes.async.notes.SaveNoteTask;
+
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.models.listeners.OnReminderPickedListener;
 import it.feio.android.omninotes.utils.Constants;
@@ -80,7 +79,7 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
         } else if (Constants.ACTION_SNOOZE.equals(action)) {
             String snoozeDelay = prefs.getString("settings_notification_snooze_delay", Constants.PREF_SNOOZE_DEFAULT);
             long newReminder = Calendar.getInstance().getTimeInMillis() + Integer.parseInt(snoozeDelay) * 60 * 1000;
-            updateNoteReminder(newReminder, note);
+            ReminderHelper.updateNoteReminder(newReminder, note);
             finish();
             //todo need to update in note alarm information.
         } else if (Constants.ACTION_POSTPONE.equals(action)) {
@@ -153,30 +152,6 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
         finish();
     }
 
-
-    /**
-     * Sets the alarm without updating the {note}
-     * //todo move from here
-     * @param note to marshall for passing to the AlarmManager.
-     * @see #updateNoteReminder(long, Note, boolean)
-     * */
-    public static void updateNoteReminder(long reminder, Note note) {
-        ReminderHelper.addReminder(OmniNotes.getAppContext(), note, reminder);
-        ReminderHelper.showReminderMessage(note.getAlarm());
-    }
-
-
-    /**
-     * If {updateNote} is true , calls {noteToUpdate}.setAlarm({reminder}) and {@link SaveNoteTask SaveNoteTask}.
-     * */
-    public static void updateNoteReminder(long reminder, Note noteToUpdate, boolean updateNote) {
-        if (updateNote) {
-            noteToUpdate.setAlarm(reminder);
-            new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteToUpdate);
-        } else {
-            updateNoteReminder(reminder, noteToUpdate);
-        }
-    }
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {

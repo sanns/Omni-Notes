@@ -28,7 +28,6 @@ import android.text.TextUtils;
 import android.widget.Toast;
 import it.feio.android.omninotes.OmniNotes;
 import it.feio.android.omninotes.R;
-import it.feio.android.omninotes.SnoozeActivity;
 import it.feio.android.omninotes.async.notes.SaveNoteTask;
 import it.feio.android.omninotes.helpers.date.DateHelper;
 import it.feio.android.omninotes.models.Note;
@@ -133,10 +132,32 @@ public class ReminderHelper {
       if (!TextUtils.isEmpty(rule)) {
           long nextReminder = DateHelper.nextReminderFromRecurrenceRule(Long.parseLong(note.getAlarm()), rule);
           if (nextReminder > 0) {
-              SnoozeActivity.updateNoteReminder(nextReminder, note, true);
+              updateNoteReminder(nextReminder, note, true);
           }
       } else {
           new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, note);
+      }
+  }
+
+	/**
+   * Sets the alarm without updating the {note}
+   * @param note to marshall for passing to the AlarmManager.
+   * @see #updateNoteReminder(long, Note, boolean)
+   * */
+  public static void updateNoteReminder(long reminder, Note note) {
+      addReminder(OmniNotes.getAppContext(), note, reminder);
+      showReminderMessage(note.getAlarm());
+  }
+
+	/**
+   * If {updateNote} is true , calls {noteToUpdate}.setAlarm({reminder}) and {@link SaveNoteTask SaveNoteTask}.
+   * */
+  public static void updateNoteReminder(long reminder, Note noteToUpdate, boolean updateNote) {
+      if (updateNote) {
+          noteToUpdate.setAlarm(reminder);
+          new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteToUpdate);
+      } else {
+          updateNoteReminder(reminder, noteToUpdate);
       }
   }
 }
