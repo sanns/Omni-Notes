@@ -34,9 +34,9 @@ import java.util.List;
 
 
 /**
- * Saves the note.
- * Sets the reminder.
- * Only the first Note-param.
+ * Saves the note.Only the first Note-param.
+ * Calls {@link ReminderHelper#addReminder(Context, Note)  ReminderHelper.addReminder()}. Sets 'fired' false.
+ *
  * */
 public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
 
@@ -45,6 +45,9 @@ public class SaveNoteTask extends AsyncTask<Note, Void, Note> {
     private OnNoteSaved mOnNoteSaved;
 
 
+    /**
+     * @see SaveNoteTask
+     * */
     public SaveNoteTask(boolean updateLastModification) {
         this(null, updateLastModification);
     }
