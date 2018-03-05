@@ -21,12 +21,15 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.widget.Toast;
 import it.feio.android.omninotes.OmniNotes;
 import it.feio.android.omninotes.R;
+import it.feio.android.omninotes.SnoozeActivity;
+import it.feio.android.omninotes.async.notes.SaveNoteTask;
 import it.feio.android.omninotes.helpers.date.DateHelper;
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.receiver.AlarmReceiver;
@@ -118,4 +121,22 @@ public class ReminderHelper {
 			}
 		}
 	}
+
+	/**
+   * Updates the note with new alarm property depending on recurrence rule. This leads to {@link SaveNoteTask SaveNoteTask}.
+   * Or saves a task in AsyncTask. Why?
+   * todo move out of Activity
+   * */
+  public static void setNextRecurrentReminder(Note note) {
+      String rule = note.getRecurrenceRule();
+
+      if (!TextUtils.isEmpty(rule)) {
+          long nextReminder = DateHelper.nextReminderFromRecurrenceRule(Long.parseLong(note.getAlarm()), rule);
+          if (nextReminder > 0) {
+              SnoozeActivity.updateNoteReminder(nextReminder, note, true);
+          }
+      } else {
+          new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, note);
+      }
+  }
 }

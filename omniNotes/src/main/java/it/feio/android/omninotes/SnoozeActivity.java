@@ -26,11 +26,9 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 import it.feio.android.omninotes.async.notes.SaveNoteTask;
-import it.feio.android.omninotes.helpers.date.DateHelper;
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.models.listeners.OnReminderPickedListener;
 import it.feio.android.omninotes.utils.Constants;
@@ -77,7 +75,7 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
 
         if (Constants.ACTION_DISMISS.equals(action)) {
             //case not currently used?
-            setNextRecurrentReminder(note);
+            ReminderHelper.setNextRecurrentReminder(note);
             finish();
         } else if (Constants.ACTION_SNOOZE.equals(action)) {
             String snoozeDelay = prefs.getString("settings_notification_snooze_delay", Constants.PREF_SNOOZE_DEFAULT);
@@ -144,34 +142,15 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     public void onRecurrenceReminderPicked(String recurrenceRule) {
         if (this.note != null) {
             this.note.setRecurrenceRule(recurrenceRule);
-            setNextRecurrentReminder(this.note);
+            ReminderHelper.setNextRecurrentReminder(this.note);
         } else {
             for (Note note : this.notes) {
                 note.setRecurrenceRule(recurrenceRule);
-                setNextRecurrentReminder(note);
+                ReminderHelper.setNextRecurrentReminder(note);
             }
             setResult(RESULT_OK, getIntent());
         }
         finish();
-    }
-
-
-    /**
-     * Updates the note with new alarm property depending on recurrence rule. This leads to {@link SaveNoteTask SaveNoteTask}.
-     * Or saves a task in AsyncTask. Why?
-     * todo move out of Activity
-     * */
-    public static void setNextRecurrentReminder(Note note) {
-        String rule = note.getRecurrenceRule();
-
-        if (!TextUtils.isEmpty(rule)) {
-            long nextReminder = DateHelper.nextReminderFromRecurrenceRule(Long.parseLong(note.getAlarm()), rule);
-            if (nextReminder > 0) {
-                updateNoteReminder(nextReminder, note, true);
-            }
-        } else {
-            new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, note);
-        }
     }
 
 
@@ -190,7 +169,7 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     /**
      * If {updateNote} is true , calls {noteToUpdate}.setAlarm({reminder}) and {@link SaveNoteTask SaveNoteTask}.
      * */
-    private static void updateNoteReminder(long reminder, Note noteToUpdate, boolean updateNote) {
+    public static void updateNoteReminder(long reminder, Note noteToUpdate, boolean updateNote) {
         if (updateNote) {
             noteToUpdate.setAlarm(reminder);
             new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteToUpdate);

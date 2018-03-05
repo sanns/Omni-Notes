@@ -46,7 +46,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 				Note.CREATOR
 			);
 			createNotification(mContext, note);
-			SnoozeActivity.setNextRecurrentReminder(note);
+			ReminderHelper.setNextRecurrentReminder(note);
 			if (Build.VERSION.SDK_INT >= 18 && !NotificationListener.isRunning()) {
 				DbHelper.getInstance().setReminderFired(note.get_id(), true);
 			}
