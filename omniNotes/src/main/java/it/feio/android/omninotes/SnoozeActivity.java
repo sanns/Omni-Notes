@@ -48,6 +48,7 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
 
     private Note note;
     private Note[] notes;
+    // these are used to notify back the pickers when each step is performed:
     private ReminderPickers onDateSetListener;
     private ReminderPickers onTimeSetListener;
 
@@ -75,6 +76,7 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
         String action = getIntent().getAction();
 
         if (Constants.ACTION_DISMISS.equals(action)) {
+            //case not currently used?
             setNextRecurrentReminder(note);
             finish();
         } else if (Constants.ACTION_SNOOZE.equals(action)) {
