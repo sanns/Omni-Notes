@@ -84,7 +84,10 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
             finish();
             //todo need to update in note alarm information.
         } else if (Constants.ACTION_POSTPONE.equals(action)) {
-            postpone(prefs, Long.parseLong(note.getAlarm()), note.getRecurrenceRule());
+            int pickerType = prefs.getBoolean("settings_simple_calendar", false)
+              ? ReminderPickers.TYPE_AOSP
+              : ReminderPickers.TYPE_GOOGLE;
+            postpone(Long.parseLong(note.getAlarm()), note.getRecurrenceRule(), pickerType);
         } else {
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra(Constants.INTENT_KEY, note.get_id());
@@ -105,6 +108,16 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
         reminderPicker.pick(alarm, recurrenceRule);
         onDateSetListener = reminderPicker;
         onTimeSetListener = reminderPicker;
+    }
+    /**
+     * Shows the dialog.
+     * */
+    private ReminderPickers postpone(Long alarm, String recurrenceRule, int pickerType) {
+        ReminderPickers reminderPicker = new ReminderPickers(this, this, pickerType);
+        reminderPicker.pick(alarm, recurrenceRule);
+        onDateSetListener = reminderPicker;
+        onTimeSetListener = reminderPicker;
+        return reminderPicker;
     }
 
 
