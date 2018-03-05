@@ -23,14 +23,11 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.text.TextUtils;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
-import it.feio.android.omninotes.async.notes.SaveNoteTask;
-import it.feio.android.omninotes.helpers.date.DateHelper;
+
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.models.listeners.OnReminderPickedListener;
 import it.feio.android.omninotes.utils.Constants;
@@ -48,6 +45,7 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
 
     private Note note;
     private Note[] notes;
+    // these are used to notify back the pickers when each step is performed:
     private ReminderPickers onDateSetListener;
     private ReminderPickers onTimeSetListener;
 
@@ -75,16 +73,20 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
         String action = getIntent().getAction();
 
         if (Constants.ACTION_DISMISS.equals(action)) {
-            setNextRecurrentReminder(note);
+            //case not currently used?
+            ReminderHelper.setNextRecurrentReminder(note);
             finish();
         } else if (Constants.ACTION_SNOOZE.equals(action)) {
             String snoozeDelay = prefs.getString("settings_notification_snooze_delay", Constants.PREF_SNOOZE_DEFAULT);
             long newReminder = Calendar.getInstance().getTimeInMillis() + Integer.parseInt(snoozeDelay) * 60 * 1000;
-            updateNoteReminder(newReminder, note);
+            ReminderHelper.updateNoteReminder(newReminder, note);
             finish();
             //todo need to update in note alarm information.
         } else if (Constants.ACTION_POSTPONE.equals(action)) {
-            postpone(prefs, Long.parseLong(note.getAlarm()), note.getRecurrenceRule());
+            int pickerType = prefs.getBoolean("settings_simple_calendar", false)
+              ? ReminderPickers.TYPE_AOSP
+              : ReminderPickers.TYPE_GOOGLE;
+            postpone(Long.parseLong(note.getAlarm()), note.getRecurrenceRule(), pickerType);
         } else {
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra(Constants.INTENT_KEY, note.get_id());
@@ -105,6 +107,16 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
         reminderPicker.pick(alarm, recurrenceRule);
         onDateSetListener = reminderPicker;
         onTimeSetListener = reminderPicker;
+    }
+    /**
+     * Shows the dialog.
+     * */
+    private ReminderPickers postpone(Long alarm, String recurrenceRule, int pickerType) {
+        ReminderPickers reminderPicker = new ReminderPickers(this, this, pickerType);
+        reminderPicker.pick(alarm, recurrenceRule);
+        onDateSetListener = reminderPicker;
+        onTimeSetListener = reminderPicker;
+        return reminderPicker;
     }
 
 
@@ -129,55 +141,17 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     public void onRecurrenceReminderPicked(String recurrenceRule) {
         if (this.note != null) {
             this.note.setRecurrenceRule(recurrenceRule);
-            setNextRecurrentReminder(this.note);
+            ReminderHelper.setNextRecurrentReminder(this.note);
         } else {
             for (Note note : this.notes) {
                 note.setRecurrenceRule(recurrenceRule);
-                setNextRecurrentReminder(note);
+                ReminderHelper.setNextRecurrentReminder(note);
             }
             setResult(RESULT_OK, getIntent());
         }
         finish();
     }
 
-
-    /**
-     * Updates the note with new alarm property depending on recurrence rule. This leads to {@link SaveNoteTask SaveNoteTask}.
-     * Or saves a task in AsyncTask. Why?
-     * todo move out of Activity
-     * */
-    public static void setNextRecurrentReminder(Note note) {
-        String rule = note.getRecurrenceRule();
-
-        if (!TextUtils.isEmpty(rule)) {
-            long nextReminder = DateHelper.nextReminderFromRecurrenceRule(Long.parseLong(note.getAlarm()), rule);
-            if (nextReminder > 0) {
-                updateNoteReminder(nextReminder, note, true);
-            }
-        } else {
-            new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, note);
-        }
-    }
-
-
-    /**
-     * Sets the alarm without updating the {note}
-     * //todo move from here
-     * */
-    public static void updateNoteReminder(long reminder, Note note) {
-        updateNoteReminder(reminder, note, false);
-    }
-
-
-    private static void updateNoteReminder(long reminder, Note noteToUpdate, boolean updateNote) {
-        if (updateNote) {
-            noteToUpdate.setAlarm(reminder);
-            new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteToUpdate);
-        } else {
-            ReminderHelper.addReminder(OmniNotes.getAppContext(), noteToUpdate, reminder);
-            ReminderHelper.showReminderMessage(noteToUpdate.getAlarm());
-        }
-    }
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {

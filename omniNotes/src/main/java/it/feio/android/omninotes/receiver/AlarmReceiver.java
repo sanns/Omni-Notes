@@ -36,6 +36,9 @@ import it.feio.android.omninotes.services.NotificationListener;
 import it.feio.android.omninotes.utils.*; //?????
 
 
+/**
+ * Sets the alarm again according to recurrence rule in {@link Constants#INTENT_NOTE INTENT_NOTE}-extra?
+ * */
 public class AlarmReceiver extends BroadcastReceiver {
 	SharedPreferences prefs;
 	String snoozeDelay;
@@ -52,7 +55,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 				Note.CREATOR
 			);
 			createNotification(mContext, note);
-			SnoozeActivity.setNextRecurrentReminder(note);
+			ReminderHelper.setNextRecurrentReminder(note);
 
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && !NotificationListener.isRunning()) {
 				DbHelper.getInstance().setReminderFired(note.get_id(), true);

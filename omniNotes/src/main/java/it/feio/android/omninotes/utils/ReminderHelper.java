@@ -21,12 +21,14 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.widget.Toast;
 import it.feio.android.omninotes.OmniNotes;
 import it.feio.android.omninotes.R;
+import it.feio.android.omninotes.async.notes.SaveNoteTask;
 import it.feio.android.omninotes.helpers.date.DateHelper;
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.receiver.AlarmReceiver;
@@ -37,6 +39,11 @@ import java.util.Calendar;
 
 public class ReminderHelper {
 
+	/**
+	 * Sets the reminder on {note}.getAlarm().
+	 * {@link #addReminder addReminder(Context, Note, long)}
+	 * @see #addReminder(Context, Note, long)
+	 * */
 	public static void addReminder(Context context, Note note) {
 		String alarm = note.getAlarm();
 		if (alarm == null) return;
@@ -45,9 +52,11 @@ public class ReminderHelper {
 	}
 
 	/**
-	 * Will marshall the {note} and put it in broadcast.
+	 * Only if the {reminder} is {@link DateUtils#isFuture(long) future} will marshall the {note}
+	 * and put it in broadcast. The broadcast will be set on the {@link AlarmManager AlarmManager}.
+	 *
 	 * @param context of app is for getting alarm system service and PendingIntent.getBroadcast()
-	 * */
+	 */
 	public static void addReminder(Context context, Note note, long reminder) {
 		if (DateUtils.isFuture(reminder)) {
 			Intent intent = new Intent(context, AlarmReceiver.class); //видимо , этот бродкаст получит только AlarmReceiver в onReceive.
@@ -123,4 +132,44 @@ public class ReminderHelper {
 			}
 		}
 	}
+
+	/**
+   * Updates the note with new alarm property depending on recurrence rule. This leads to {@link SaveNoteTask SaveNoteTask}.
+   * Or saves a task in AsyncTask. Why?
+   * todo move out of Activity
+   * */
+  public static void setNextRecurrentReminder(Note note) {
+      String rule = note.getRecurrenceRule();
+
+      if (!TextUtils.isEmpty(rule)) {
+          long nextReminder = DateHelper.nextReminderFromRecurrenceRule(Long.parseLong(note.getAlarm()), rule);
+          if (nextReminder > 0) {
+              updateNoteReminder(nextReminder, note, true);
+          }
+      } else {
+          new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, note);
+      }
+  }
+
+	/**
+   * Sets the alarm without updating the {note}
+   * @param note to marshall for passing to the AlarmManager.
+   * @see #updateNoteReminder(long, Note, boolean)
+   * */
+  public static void updateNoteReminder(long reminder, Note note) {
+      addReminder(OmniNotes.getAppContext(), note, reminder);
+      showReminderMessage(note.getAlarm());
+  }
+
+	/**
+   * If {updateNote} is true , calls {noteToUpdate}.setAlarm({reminder}) and {@link SaveNoteTask SaveNoteTask}.
+   * */
+  public static void updateNoteReminder(long reminder, Note noteToUpdate, boolean updateNote) {
+      if (updateNote) {
+          noteToUpdate.setAlarm(reminder);
+          new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteToUpdate);
+      } else {
+          updateNoteReminder(reminder, noteToUpdate);
+      }
+  }
 }
