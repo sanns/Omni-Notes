@@ -37,6 +37,11 @@ import java.util.Calendar;
 
 public class ReminderHelper {
 
+	/**
+	 * Sets the reminder on {note}.getAlarm().
+	 * {@link #addReminder addReminder(Context, Note, long)}
+	 * @see #addReminder(Context, Note, long)
+	 * */
 	public static void addReminder(Context context, Note note) {
 		String alarm = note.getAlarm();
 		if (alarm == null) return;
@@ -45,9 +50,11 @@ public class ReminderHelper {
 	}
 
 	/**
-	 * Will marshall the {note} and put it in broadcast.
+	 * Only if the {reminder} is {@link DateUtils#isFuture(long) future} will marshall the {note}
+	 * and put it in broadcast. The broadcast will be set on the {@link AlarmManager AlarmManager}.
+	 *
 	 * @param context of app is for getting alarm system service and PendingIntent.getBroadcast()
-	 * */
+	 */
 	public static void addReminder(Context context, Note note, long reminder) {
 		if (DateUtils.isFuture(reminder)) {
 			Intent intent = new Intent(context, AlarmReceiver.class); //видимо , этот бродкаст получит только AlarmReceiver в onReceive.
