@@ -558,8 +558,10 @@ public class DetailFragment extends BaseFragment implements OnTouchListener,
 					ReminderPickers.TYPE_GOOGLE;
 
 			ReminderPickers reminderPicker = new ReminderPickers(mainActivity, mOnReminderListener, pickerType);
-			reminderPicker.pick(DateUtils.getPresetReminder(noteTmp.getAlarm()), noteTmp
-					.getRecurrenceRule());
+			reminderPicker.pick(
+				DateUtils.getPresetReminder(noteTmp.getAlarm()),
+				noteTmp.getRecurrenceRule()
+			);
 			onDateSetListener = reminderPicker;
 			onTimeSetListener = reminderPicker;
 		});
