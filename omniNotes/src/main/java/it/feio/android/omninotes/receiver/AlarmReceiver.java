@@ -33,6 +33,9 @@ import it.feio.android.omninotes.services.NotificationListener;
 import it.feio.android.omninotes.utils.*;
 
 
+/**
+ * Sets the alarm again according to recurrence rule in {@link Constants#INTENT_NOTE INTENT_NOTE}-extra?
+ * */
 public class AlarmReceiver extends BroadcastReceiver {
 
 	@Override
