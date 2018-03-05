@@ -62,7 +62,7 @@ public class AlarmReceiver extends BroadcastReceiver {
 			}
 
 			long newReminder = Calendar.getInstance().getTimeInMillis() + Integer.parseInt(snoozeDelay) * 60 * 1000;
-			SnoozeActivity.updateNoteReminder(newReminder, note);
+			ReminderHelper.updateNoteReminder(newReminder, note);
 		} catch (Exception e) {
 			Log.e(Constants.TAG, "Error on receiving reminder", e);
 		}
