@@ -163,19 +163,24 @@ public class SnoozeActivity extends ActionBarActivity implements OnReminderPicke
     /**
      * Sets the alarm without updating the {note}
      * //todo move from here
+     * @param note to marshall for passing to the AlarmManager.
+     * @see #updateNoteReminder(long, Note, boolean)
      * */
     public static void updateNoteReminder(long reminder, Note note) {
-        updateNoteReminder(reminder, note, false);
+        ReminderHelper.addReminder(OmniNotes.getAppContext(), note, reminder);
+        ReminderHelper.showReminderMessage(note.getAlarm());
     }
 
 
+    /**
+     * If {updateNote} is true , calls {noteToUpdate}.setAlarm({reminder}) and {@link SaveNoteTask SaveNoteTask}.
+     * */
     private static void updateNoteReminder(long reminder, Note noteToUpdate, boolean updateNote) {
         if (updateNote) {
             noteToUpdate.setAlarm(reminder);
             new SaveNoteTask(false).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, noteToUpdate);
         } else {
-            ReminderHelper.addReminder(OmniNotes.getAppContext(), noteToUpdate, reminder);
-            ReminderHelper.showReminderMessage(noteToUpdate.getAlarm());
+            updateNoteReminder(reminder, noteToUpdate);
         }
     }
 
